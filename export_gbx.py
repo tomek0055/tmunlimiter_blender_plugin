@@ -232,7 +232,23 @@ def plug_tree_from_object( data : BytesIO, object : bpy.types.Object, gbx : Gbx 
         for children in object.children :
             gbx.mw_ref( data, lambda : plug_tree_from_object( data, children, gbx ) )
 # 09-04F-006 -- End
-
+# 09-04F-01A -- Start
+    nat32( data, 0x0904F01A )
+    nat32( data, 0x0000400C )
+    matrix = object.matrix_local.to_3x3()
+    real( data, matrix[ 0 ].x )
+    real( data, matrix[ 0 ].y )
+    real( data, matrix[ 0 ].z )
+    real( data, matrix[ 1 ].x )
+    real( data, matrix[ 1 ].y )
+    real( data, matrix[ 1 ].z )
+    real( data, matrix[ 2 ].x )
+    real( data, matrix[ 2 ].y )
+    real( data, matrix[ 2 ].z )
+    real( data, object.location.x )
+    real( data, object.location.y )
+    real( data, object.location.z )
+# 09-04F-01A -- End
 # 09-04F-016 -- Start
     nat32( data, 0x0904F016 )
     gbx.mw_ref( data, lambda : plug_visual_3d( data, object, gbx ) )

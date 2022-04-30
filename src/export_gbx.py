@@ -33,23 +33,24 @@ class Gbx :
 
     def __init__( self, class_id : int, filepath : str ) :
         self.mw_ids = []
+        self.mw_id_used = False
         self.class_id = class_id
         self.filepath = filepath
         self.instances = 0
 
-    def mw_id( self, data : BytesIO, id : str ) :
-        if len( self.mw_ids ) < 1 :
+    def mw_id( self, data : BytesIO, mw_id : str = "" ) :
+        if not self.mw_id_used :
+            self.mw_id_used = True
             nat32( data, 0x00000003 )
 
-        index = 0x40000000
-
-        if id in self.mw_ids :
-            nat32( data, self.mw_ids.index( id ) + index + 1 )
+        if len( mw_id ) == 0 :
+            nat32( data, 0xFFFFFFFF )
+        elif mw_id in self.mw_ids :
+            nat32( data, 0x40000001 + self.mw_ids.index( id ) )
         else :
-            self.mw_ids.append( id )
-
-            nat32( data, index )
-            string( data, id )
+            self.mw_ids.append( mw_id )
+            nat32( data, 0x40000000 )
+            string( data, mw_id )
 
     def mw_ref( self, data : BytesIO, executor ) :
         self.instances += 1

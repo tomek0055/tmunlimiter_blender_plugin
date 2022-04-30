@@ -8,6 +8,8 @@ from bpy_extras.io_utils import (
     ExportHelper,
 )
 
+import mathutils
+
 def nat8( data : BytesIO, value : int ) :
     data.write( value.to_bytes( 1, "little" ) )
 
@@ -80,7 +82,7 @@ def plug_visual_3d( data : BytesIO, object : bpy.types.Object, gbx : Gbx ) :
     bmesh.ops.triangulate( mesh, faces = mesh.faces )
 
     uv_layers = mesh.loops.layers.uv.values()
-    triangles = mesh.calc_loop_triangles()
+    triangles_loops = mesh.calc_loop_triangles()
 
     vertices_uv_tuples = [
         (
@@ -90,11 +92,11 @@ def plug_visual_3d( data : BytesIO, object : bpy.types.Object, gbx : Gbx ) :
         for vert in mesh.verts
     ]
 
-    uvs_v2 = [ {} for _ in range( len( uv_layers ) ) ]
-    loops_v2 = []
+    uvs = [ {} for _ in range( len( uv_layers ) ) ]
+    loops = []
 
-    for loops in triangles :
-        for loop in loops :
+    for triangle_loops in triangles_loops :
+        for loop in triangle_loops :
             vert = loop.vert
 
             for uv_idx, uv_layer in enumerate( uv_layers ) :
@@ -113,11 +115,11 @@ def plug_visual_3d( data : BytesIO, object : bpy.types.Object, gbx : Gbx ) :
                         vertices.append( vert )
 
                     uv_layer_tuples[ uv_tuple ] = vert
-                    uvs_v2[ uv_idx ][ vert.index ] = uv_tuple
+                    uvs[ uv_idx ][ vert.index ] = uv_tuple
                 else :
                     vert = uv_layer_tuples[ uv_tuple ]
 
-            loops_v2.append( vert.index )
+            loops.append( vert.index )
 
     if len( mesh.verts ) > 65535 :
         raise "Object exceeds 65535 vertices"
@@ -134,7 +136,7 @@ def plug_visual_3d( data : BytesIO, object : bpy.types.Object, gbx : Gbx ) :
     for uv_idx in range( len( uv_layers ) ) :
         nat32( data, 0x00000000 )
 
-        uvs = uvs_v2[ uv_idx ]
+        uvs = uvs[ uv_idx ]
 
         for vertex_idx in range( len( mesh.verts ) ) :
             uv_tuple = uvs.get( vertex_idx )
@@ -177,9 +179,9 @@ def plug_visual_3d( data : BytesIO, object : bpy.types.Object, gbx : Gbx ) :
 # 09-057-000 -- Start
     nat32( data, 0x09057000 )
     nat32( data, 0x00000002 )
-    nat32( data, len( loops_v2 ) )
+    nat32( data, len( loops ) )
 
-    for loop in loops_v2 :
+    for loop in loops :
         nat16( data, loop )
 
     nat32( data, 0xFACADE01 )
@@ -235,7 +237,19 @@ def plug_tree_from_object( data : BytesIO, object : bpy.types.Object, gbx : Gbx 
 # 09-04F-01A -- Start
     nat32( data, 0x0904F01A )
     nat32( data, 0x0000400C )
-    matrix = object.matrix_local.to_3x3()
+
+    scale = object.scale.copy()
+    rotation = object.rotation_euler.copy()
+
+    scale.y = object.scale.z
+    scale.z = object.scale.y
+    rotation.y = object.rotation_euler.z
+    rotation.z = -object.rotation_euler.y
+
+    matrix = mathutils.Matrix.LocRotScale(
+        None, rotation, scale
+    )
+
     real( data, matrix[ 0 ].x )
     real( data, matrix[ 0 ].y )
     real( data, matrix[ 0 ].z )
@@ -246,8 +260,8 @@ def plug_tree_from_object( data : BytesIO, object : bpy.types.Object, gbx : Gbx 
     real( data, matrix[ 2 ].y )
     real( data, matrix[ 2 ].z )
     real( data, object.location.x )
-    real( data, object.location.y )
     real( data, object.location.z )
+    real( data, -object.location.y )
 # 09-04F-01A -- End
 # 09-04F-016 -- Start
     nat32( data, 0x0904F016 )

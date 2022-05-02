@@ -9,8 +9,8 @@ bl_info = {
     "location" : "File > Import-Export",
 }
 
+from .export_solid_gbx import ExportSolidGbx
 import bpy
-from .export_gbx import ExportSolidGbx
 
 def menu_func_export( self, context ):
     self.layout.operator( ExportSolidGbx.bl_idname )

@@ -34,6 +34,7 @@ class Gbx :
 
         self.validators = {
             **validators,
+            "plug_visual_3d" : lambda object : object.type == "MESH"
         }
 
     def nat8( self, value : int ) :

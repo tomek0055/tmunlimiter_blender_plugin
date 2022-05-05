@@ -2,6 +2,11 @@ from io import BytesIO
 import struct
 import lzo
 
+from .validators import (
+    validate_plug_surface,
+    validate_plug_visual_3d,
+)
+
 def nat8( data : BytesIO, value : int ) :
     data.write( value.to_bytes( 1, "little" ) )
 
@@ -33,8 +38,9 @@ class Gbx :
         self.instances = 0
 
         self.validators = {
+            "plug_surface" : validate_plug_surface,
             **validators,
-            "plug_visual_3d" : lambda object : object.type == "MESH"
+            "plug_visual_3d" : validate_plug_visual_3d,
         }
 
     def nat8( self, value : int ) :
@@ -46,7 +52,7 @@ class Gbx :
     def nat32( self, value : int ) :
         nat32( self.body, value )
 
-    def real( self, value : int ) :
+    def real( self, value : float ) :
         real( self.body, value )
 
     def string( self, value : str ) :
@@ -67,16 +73,26 @@ class Gbx :
             self.string( mw_id )
 
     def mw_ref( self, function, *function_args, **function_kwargs ) :
-        valid_ref = not function.__name__ in self.validators or self.validators[ function.__name__ ]( *function_args, **function_kwargs )
+        valid_ref = \
+            not function.__name__ in self.validators \
+                or \
+            self.validators[ function.__name__ ]( *function_args, **function_kwargs )
 
         if not valid_ref :
             self.nat32( 0xFFFFFFFF )
-            return
+
+            return (
+                valid_ref,
+                None,
+            )
 
         self.instances += 1
         self.nat32( self.instances )
 
-        function( self, *function_args, **function_kwargs )
+        return (
+            valid_ref,
+            function( self, *function_args, **function_kwargs ),
+        )
 
     def do_save( self, filepath : str ) :
         header = BytesIO()

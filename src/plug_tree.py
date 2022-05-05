@@ -54,9 +54,23 @@ def plug_tree_from_object( gbx : Gbx, object : bpy.types.Object ) :
         for children in object.children :
             gbx.mw_ref( plug_tree_from_object, children )
 # 09-04F-006 -- End
+# 09-04F-016 -- Start
+    gbx.nat32( 0x0904F016 )
+    has_visual_3d, _ = gbx.mw_ref( plug_visual_3d, object )
+    gbx.nat32( 0xFFFFFFFF )
+    is_collidable, _ = gbx.mw_ref( plug_surface, object )
+    gbx.nat32( 0xFFFFFFFF )
+# 09-04F-016 -- End
+    flags = 0x00004004
+
+    if has_visual_3d :
+        flags |= 0x00000008
+
+    if is_collidable :
+        flags |= 0x00000080
 # 09-04F-01A -- Start
     gbx.nat32( 0x0904F01A )
-    gbx.nat32( 0x0000400C )
+    gbx.nat32( flags )
 
     scale = object.scale.copy()
     rotation = object.rotation_euler.copy()
@@ -83,12 +97,5 @@ def plug_tree_from_object( gbx : Gbx, object : bpy.types.Object ) :
     gbx.real( object.location.z )
     gbx.real( -object.location.y )
 # 09-04F-01A -- End
-# 09-04F-016 -- Start
-    gbx.nat32( 0x0904F016 )
-    gbx.mw_ref( plug_visual_3d, object )
-    gbx.nat32( 0xFFFFFFFF )
-    gbx.mw_ref( plug_surface, object )
-    gbx.nat32( 0xFFFFFFFF )
-# 09-04F-016 -- End
     gbx.nat32( 0xFACADE01 )
 # 09-04F-000 -- End

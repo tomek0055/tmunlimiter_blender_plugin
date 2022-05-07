@@ -1,11 +1,11 @@
+from .blender_gbx import BlenderGbx
 from .plug_solid import plug_solid
-from .gbx import Gbx
 import bpy
 
 CLASS_ID = 0x3F004000
 
 def unlimiter_block_v1(
-    gbx : Gbx,
+    gbx : BlenderGbx,
     block_id : str,
     block_author : str,
     spawn_point : list[ float ],

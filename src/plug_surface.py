@@ -1,8 +1,8 @@
-from .gbx import Gbx
+from .blender_gbx import BlenderGbx
 import bmesh
 import bpy
 
-def plug_surface_geom( gbx : Gbx, object : bpy.types.Object ) -> list[ bpy.types.Material ] :
+def plug_surface_geom( gbx : BlenderGbx, object : bpy.types.Object ) -> list[ bpy.types.Material ] :
     gbx.nat32( 0x0900F000 )
     gbx.nat32( 0x0900F004 )
     gbx.mw_id()
@@ -10,7 +10,7 @@ def plug_surface_geom( gbx : Gbx, object : bpy.types.Object ) -> list[ bpy.types
     mesh_data : bpy.types.Mesh = object.data
 
     mesh = bmesh.new()
-    mesh.from_mesh( object.data )
+    mesh.from_object( object, gbx.depsgraph )
     bmesh.ops.triangulate( mesh, faces = mesh.faces )
 
     faces : list[ bmesh.types.BMFace ] = list(
@@ -97,7 +97,7 @@ def plug_surface_geom( gbx : Gbx, object : bpy.types.Object ) -> list[ bpy.types
         )
     )
 
-def plug_surface( gbx : Gbx, object : bpy.types.Object ) :
+def plug_surface( gbx : BlenderGbx, object : bpy.types.Object ) :
     gbx.nat32( 0x0900C000 )
     gbx.nat32( 0x0900C000 )
     _, materials = gbx.mw_ref( plug_surface_geom, object )

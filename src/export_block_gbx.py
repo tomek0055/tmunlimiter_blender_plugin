@@ -4,7 +4,7 @@ from .unlimiter_block_v1 import (
 )
 
 from bpy_extras.io_utils import ExportHelper
-from .gbx import Gbx
+from .blender_gbx import BlenderGbx
 import bpy
 
 class TMUnlimiterMaterial( bpy.types.PropertyGroup ) :
@@ -129,7 +129,10 @@ class ExportBlockGbx( bpy.types.Operator, ExportHelper ):
     check_extension = False
 
     def execute( self, context : bpy.context ) :
-        gbx = Gbx( CLASS_ID )
+        gbx = BlenderGbx(
+            CLASS_ID,
+            context.evaluated_depsgraph_get()
+        )
 
         unlimiter_block_v1(
             gbx,

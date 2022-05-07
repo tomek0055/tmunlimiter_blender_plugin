@@ -1,10 +1,10 @@
-from .gbx import Gbx
+from .blender_gbx import BlenderGbx
 import bmesh
 import bpy
 
-def plug_visual_3d( gbx : Gbx, object : bpy.types.Object ) :
+def plug_visual_3d( gbx : BlenderGbx, object : bpy.types.Object ) :
     mesh = bmesh.new()
-    mesh.from_mesh( object.data )
+    mesh.from_object( object, gbx.depsgraph )
     bmesh.ops.triangulate( mesh, faces = mesh.faces )
 
     uv_layers = mesh.loops.layers.uv.values()

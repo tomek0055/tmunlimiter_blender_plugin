@@ -6,11 +6,11 @@ from .plug_surface import (
     plug_surface,
 )
 
-from .gbx import Gbx
+from .blender_gbx import BlenderGbx
 import mathutils
 import bpy
 
-def plug_tree_from_collection( gbx : Gbx, collection : bpy.types.Collection ) :
+def plug_tree_from_collection( gbx : BlenderGbx, collection : bpy.types.Collection ) :
     objects = list( filter( lambda object : object.parent is None, collection.all_objects ) )
 
 # 09-04F-000 -- Start
@@ -35,7 +35,7 @@ def plug_tree_from_collection( gbx : Gbx, collection : bpy.types.Collection ) :
     gbx.nat32( 0xFACADE01 )
 # 09-04F-000 -- End
 
-def plug_tree_from_object( gbx : Gbx, object : bpy.types.Object ) :
+def plug_tree_from_object( gbx : BlenderGbx, object : bpy.types.Object ) :
 # 09-04F-000 -- Start
     gbx.nat32( 0x0904F000 )
 

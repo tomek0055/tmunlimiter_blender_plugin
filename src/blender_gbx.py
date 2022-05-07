@@ -1,6 +1,7 @@
 from io import BytesIO
 import struct
 import lzo
+import bpy
 
 from .validators import (
     validate_plug_surface,
@@ -26,15 +27,21 @@ def string( data : BytesIO, value : str, is_wide : bool = False ) :
     nat32( data, len( value ) )
     text( data, value, is_wide )
 
-class Gbx :
+class BlenderGbx :
 
-    def __init__( self, class_id : int, validators : dict = {} ) :
+    def __init__(
+        self,
+        class_id : int,
+        depsgraph : bpy.types.Depsgraph,
+        validators : dict = {}
+    ) :
         self.mw_ids = []
         self.mw_id_used = False
 
         self.body = BytesIO()
 
         self.class_id = class_id
+        self.depsgraph = depsgraph
         self.instances = 0
 
         self.validators = {

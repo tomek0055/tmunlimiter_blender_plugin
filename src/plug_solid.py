@@ -2,10 +2,10 @@ from .plug_tree import (
     plug_tree_from_collection,
     plug_tree_from_object,
 )
-from .gbx import Gbx
+from .blender_gbx import BlenderGbx
 import bpy
 
-def plug_solid( gbx : Gbx, root : bpy.types.Object | bpy.types.Collection ) :
+def plug_solid( gbx : BlenderGbx, root : bpy.types.Object | bpy.types.Collection ) :
 # 0x09005000 -- start
     gbx.nat32( 0x09005000 )
     gbx.nat32( 0x00000001 )

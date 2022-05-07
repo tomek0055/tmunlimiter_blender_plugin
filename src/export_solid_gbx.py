@@ -1,6 +1,6 @@
 from bpy_extras.io_utils import ExportHelper
+from .blender_gbx import BlenderGbx
 from .plug_solid import plug_solid
-from .gbx import Gbx
 import bpy
 
 class ExportSolidGbx( bpy.types.Operator, ExportHelper ):
@@ -25,9 +25,13 @@ class ExportSolidGbx( bpy.types.Operator, ExportHelper ):
     check_extension = False
 
     def execute( self, context ) :
-        gbx = Gbx( 0x09005000, {
-            "plug_surface" : lambda *_, **__ : False
-        } )
+        gbx = BlenderGbx(
+            0x09005000,
+            context.evaluated_depsgraph_get(),
+            {
+                "plug_surface" : lambda *_, **__ : False
+            }
+        )
 
         if self.use_active_collection :
             collection = context.collection

@@ -2,10 +2,9 @@ from .blender_gbx import BlenderGbx
 import bmesh
 import bpy
 
-def plug_surface_geom( gbx : BlenderGbx, object : bpy.types.Object ) -> list[ bpy.types.Material ] :
+def plug_surface_geom_mesh( gbx : BlenderGbx, object : bpy.types.Object ) -> list[ bpy.types.Material ] :
     gbx.nat32( 0x0900F000 )
-    gbx.nat32( 0x0900F004 )
-    gbx.mw_id()
+    gbx.nat32( 0x0900F002 )
 
     mesh_data : bpy.types.Mesh = object.data
 
@@ -40,13 +39,6 @@ def plug_surface_geom( gbx : BlenderGbx, object : bpy.types.Object ) -> list[ bp
                 len( material_translation_table ),
                 mesh_data.materials[ material_index ],
             )
-
-    gbx.real( 0 )
-    gbx.real( 0 )
-    gbx.real( 0 )
-    gbx.real( -1 )
-    gbx.real( -1 )
-    gbx.real( -1 )
 
     gbx.nat32( 7 )
     gbx.nat32( 1 )
@@ -85,7 +77,7 @@ def plug_surface_geom( gbx : BlenderGbx, object : bpy.types.Object ) -> list[ bp
 
     # zero list
     gbx.nat32( 0 )
-    # __field4
+    # this field is ignored in "Mesh" surface type
     gbx.nat16( 0 )
     # naura
     gbx.nat32( 0xFACADE01 )
@@ -100,7 +92,7 @@ def plug_surface_geom( gbx : BlenderGbx, object : bpy.types.Object ) -> list[ bp
 def plug_surface( gbx : BlenderGbx, object : bpy.types.Object ) :
     gbx.nat32( 0x0900C000 )
     gbx.nat32( 0x0900C000 )
-    _, materials = gbx.mw_ref( plug_surface_geom, object )
+    _, materials = gbx.mw_ref( plug_surface_geom_mesh, object )
 
     gbx.nat32( len( materials ) )
 

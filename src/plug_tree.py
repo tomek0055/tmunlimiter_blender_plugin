@@ -21,6 +21,7 @@ def plug_tree_from_collection( gbx : BlenderGbx, collection : bpy.types.Collecti
     gbx.mw_id( collection.name )
     gbx.nat32( 0xFFFFFFFF )
 # 09-04F-00D -- End
+    flags = 0x00004000
 
 # 09-04F-006 -- Start
     if len( objects ) :
@@ -29,9 +30,15 @@ def plug_tree_from_collection( gbx : BlenderGbx, collection : bpy.types.Collecti
         gbx.nat32( len( objects ) )
 
         for object in objects :
-            gbx.mw_ref( plug_tree_from_object, object )
-# 09-04F-006 -- End
+            was_valid_ref, child_flags = gbx.mw_ref( plug_tree_from_object, object )
 
+            if was_valid_ref :
+                flags |= child_flags & ~0x00000004
+# 09-04F-006 -- End
+# 09-04F-01A -- Start
+    gbx.nat32( 0x0904F01A )
+    gbx.nat32( flags )
+# 09-04F-01A -- End
     gbx.nat32( 0xFACADE01 )
 # 09-04F-000 -- End
 
@@ -44,7 +51,7 @@ def plug_tree_from_object( gbx : BlenderGbx, object : bpy.types.Object ) :
     gbx.mw_id( object.name )
     gbx.nat32( 0xFFFFFFFF )
 # 09-04F-00D -- End
-
+    flags = 0x00004004
 # 09-04F-006 -- Start
     if len( object.children ) :
         gbx.nat32( 0x0904F006 )
@@ -52,8 +59,14 @@ def plug_tree_from_object( gbx : BlenderGbx, object : bpy.types.Object ) :
         gbx.nat32( len( object.children ) )
 
         for children in object.children :
-            gbx.mw_ref( plug_tree_from_object, children )
+            was_valid_ref, child_flags = gbx.mw_ref( plug_tree_from_object, children )
+
+            if was_valid_ref :
+                flags |= child_flags
 # 09-04F-006 -- End
+    has_visual_3d = False
+    is_collidable = False
+
 # 09-04F-016 -- Start
     gbx.nat32( 0x0904F016 )
     has_visual_3d, _ = gbx.mw_ref( plug_visual_3d, object )
@@ -61,8 +74,6 @@ def plug_tree_from_object( gbx : BlenderGbx, object : bpy.types.Object ) :
     is_collidable, _ = gbx.mw_ref( plug_surface, object )
     gbx.nat32( 0xFFFFFFFF )
 # 09-04F-016 -- End
-    flags = 0x00004004
-
     if has_visual_3d :
         flags |= 0x00000008
 
@@ -99,3 +110,4 @@ def plug_tree_from_object( gbx : BlenderGbx, object : bpy.types.Object ) :
 # 09-04F-01A -- End
     gbx.nat32( 0xFACADE01 )
 # 09-04F-000 -- End
+    return flags

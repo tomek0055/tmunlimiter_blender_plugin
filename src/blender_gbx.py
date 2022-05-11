@@ -21,7 +21,7 @@ def real( data : BytesIO, value : float ) :
     data.write( struct.pack( "f", value ) )
 
 def text( data : BytesIO, value : str, is_wide : bool = False ) :
-    data.write( value.encode( "utf_16" if is_wide else "utf_8" ) )
+    data.write( value.encode( "utf_16_le" if is_wide else "utf_8" ) )
 
 def string( data : BytesIO, value : str, is_wide : bool = False ) :
     nat32( data, len( value ) )
@@ -62,8 +62,8 @@ class BlenderGbx :
     def real( self, value : float ) :
         real( self.body, value )
 
-    def string( self, value : str ) :
-        string( self.body, value )
+    def string( self, value : str, is_wide = False ) :
+        string( self.body, value, is_wide )
 
     def mw_id( self, mw_id : str = "" ) :
         if not self.mw_id_used :

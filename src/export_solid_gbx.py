@@ -4,7 +4,7 @@ from .plug_solid import plug_solid
 import bpy
 
 class ExportSolidGbx( bpy.types.Operator, ExportHelper ):
-    """Save as *.Solid.Gbx File"""
+    """Save as *.Solid.Gbx file, to enable export, switch to object mode"""
 
     bl_label = "Export *.Solid.Gbx file"
     bl_idname = "export_scene.gbx"
@@ -23,6 +23,10 @@ class ExportSolidGbx( bpy.types.Operator, ExportHelper ):
 
     filename_ext = ".Solid.Gbx"
     check_extension = False
+
+    @classmethod
+    def poll( self, context : bpy.context ) :
+        return context.mode == "OBJECT"
 
     def execute( self, context ) :
         gbx = BlenderGbx(

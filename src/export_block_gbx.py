@@ -99,7 +99,7 @@ class TMUnlimiterMaterialProperties( bpy.types.Panel ) :
             self.layout.prop( data, "collision_material" )
 
 class ExportBlockGbx( bpy.types.Operator, ExportHelper ):
-    """Save as *.Block.Gbx File"""
+    """Save as *.Block.Gbx file, to enable export, switch to object mode"""
 
     bl_label = "Export *.Block.Gbx file"
     bl_idname = "export_scene.block_v1_gbx"
@@ -127,6 +127,10 @@ class ExportBlockGbx( bpy.types.Operator, ExportHelper ):
 
     filename_ext = ".Block.Gbx"
     check_extension = False
+
+    @classmethod
+    def poll( self, context : bpy.context ) :
+        return context.mode == "OBJECT"
 
     def execute( self, context : bpy.context ) :
         gbx = BlenderGbx(

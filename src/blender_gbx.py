@@ -44,6 +44,8 @@ class BlenderGbx :
         self.depsgraph = depsgraph
         self.instances = 0
 
+        self.external_refs = []
+
         self.validators = {
             "plug_surface" : validate_plug_surface,
             **validators,
@@ -64,6 +66,17 @@ class BlenderGbx :
 
     def string( self, value : str, is_wide = False ) :
         string( self.body, value, is_wide )
+
+    def external_ref( self, path : list[ str ], file_name : str ) :
+        self.instances += 1
+
+        self.external_refs.append( {
+            "path" : path,
+            "file_name" : file_name,
+            "instance_idx" : self.instances,
+        } )
+
+        self.nat32( self.instances )
 
     def mw_id( self, mw_id : str = "" ) :
         if not self.mw_id_used :
@@ -101,6 +114,15 @@ class BlenderGbx :
             function( self, *function_args, **function_kwargs ),
         )
 
+    def save_folder_recursive( self, header : BytesIO, folder_name : str, folder_data : dict ) :
+        child_folders = folder_data[ "child_folders" ]
+
+        string( header, folder_name )
+        nat32( header, len( child_folders ) )
+
+        for child_folder_name, child_folder in child_folders.items() :
+            self.save_folder_recursive( header, child_folder_name, child_folder )
+
     def do_save( self, filepath : str ) :
         header = BytesIO()
 
@@ -110,7 +132,59 @@ class BlenderGbx :
         nat32( header, self.class_id )
         nat32( header, 0x00000000 )
         nat32( header, self.instances + 1 )
-        nat32( header, 0x00000000 )
+        nat32( header, len( self.external_refs ) )
+
+        if len( self.external_refs ) > 0 :
+            # GBX files loaded from user directory have game data directory as root
+            # and due to that fact, we don't need to set ancestor level
+            nat32( header, 0 )
+
+            total_folders_nb = 0
+
+            root_folder = {
+                "folder_idx" : 0,
+                "child_folders" : {},
+            }
+
+            external_instances = []
+
+            for external_ref in self.external_refs :
+                parent_folder = root_folder
+
+                for folder in external_ref[ "path" ] :
+                    if folder not in parent_folder[ "child_folders" ] :
+                        total_folders_nb += 1
+
+                        parent_folder[ "child_folders" ][ folder ] = {
+                            "folder_idx" : total_folders_nb,
+                            "child_folders" : {},
+                        }
+                    
+                    parent_folder = parent_folder[ "child_folders" ][ folder ]
+
+                external_instances.append( {
+                    "folder_idx" : parent_folder[ "folder_idx" ],
+                    "external_ref" : external_ref,
+                } )
+
+            child_folders = root_folder[ "child_folders" ]
+
+            nat32( header, len( child_folders ) )
+
+            for child_folder_name, child_folder in child_folders.items() :
+                self.save_folder_recursive( header, child_folder_name, child_folder )
+            
+            for external_instance in external_instances :
+                folder_idx = external_instance[ "folder_idx" ]
+                external_ref = external_instance[ "external_ref" ]
+
+                nat32( header, 1 )
+                string( header, external_ref[ "file_name" ] )
+                
+                nat32( header, external_ref[ "instance_idx" ] )
+                nat32( header, 0 )
+
+                nat32( header, folder_idx )
 
         body = self.body.getvalue()
         nat32( header, len( body ) )

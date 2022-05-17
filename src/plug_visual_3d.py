@@ -7,43 +7,38 @@ def plug_visual_3d( gbx : BlenderGbx, object : bpy.types.Object ) :
     mesh.from_object( object, gbx.depsgraph )
     bmesh.ops.triangulate( mesh, faces = mesh.faces )
 
-    uv_layers = mesh.loops.layers.uv.values()
-    triangles_loops = mesh.calc_loop_triangles()
+    uvs = list( enumerate( mesh.loops.layers.uv.values() ) )
+    tris = mesh.calc_loop_triangles()
 
-    vertices_uv_tuples = [
-        (
-            [ {} for _ in range( len( uv_layers ) ) ],
-            [ vert ]
-        )
-        for vert in mesh.verts
-    ]
-
-    uvs = [ {} for _ in range( len( uv_layers ) ) ]
     loops = []
+    verts_data = {}
 
-    for triangle_loops in triangles_loops :
-        for loop in triangle_loops :
-            vert = loop.vert
+    for tri_loops in tris :
+        for tri_loop in tri_loops :
+            vert = tri_loop.vert
+            uv_code = []
 
-            for uv_idx, uv_layer in enumerate( uv_layers ) :
-                uv_layers_tuples, vertices = vertices_uv_tuples[ vert.index ]
-                uv_layer_tuples = uv_layers_tuples[ uv_idx ]
-                uv_tuple = loop[ uv_layer ].uv.to_tuple()
+            for uv_idx, uv_layer in uvs :
+                uv_code.append( tri_loop[ uv_layer ].uv.to_tuple() )
 
-                if not uv_tuple in uv_layer_tuples :
-                    uv_layer_tuples_size = len( uv_layer_tuples )
-
-                    if uv_layer_tuples_size < len( vertices ) :
-                        vert = vertices[ uv_layer_tuples_size ]
+            if vert.index not in verts_data :
+                verts, uv_codes = verts_data[ vert.index ] = (
+                    [ vert ],    # verts
+                    [ uv_code ], # uv_codes
+                )
                     else :
-                        vert = mesh.verts.new( vert.co, vert )
-                        vert.index = len( mesh.verts ) - 1
-                        vertices.append( vert )
+                verts, uv_codes = verts_data[ vert.index ]
 
-                    uv_layer_tuples[ uv_tuple ] = vert
-                    uvs[ uv_idx ][ vert.index ] = uv_tuple
+            if uv_code not in uv_codes :
+                new_vert = mesh.verts.new( vert.co, vert )
+                new_vert.index = len( mesh.verts ) - 1
+                verts.append( new_vert )
+
+                verts_data[ new_vert.index ] = verts_data[ vert.index ]
+                uv_codes.append( uv_code )
+                vert = new_vert
                 else :
-                    vert = uv_layer_tuples[ uv_tuple ]
+                vert = verts[ uv_codes.index( uv_code ) ]
 
             loops.append( vert.index )
 
@@ -55,23 +50,21 @@ def plug_visual_3d( gbx : BlenderGbx, object : bpy.types.Object ) :
 # 09-006-00E -- Start
     gbx.nat32( 0x0900600E )
     gbx.nat32( 0x00000038 )
-    gbx.nat32( len( uv_layers ) )
+    gbx.nat32( len( uvs ) )
     gbx.nat32( len( mesh.verts ) )
     gbx.nat32( 0x00000000 )
 
-    for uv_idx in range( len( uv_layers ) ) :
+    mesh.verts.ensure_lookup_table()
+
+    for uv_idx, _ in uvs :
         gbx.nat32( 0x00000000 )
 
-        uvs = uvs[ uv_idx ]
+        for vert in mesh.verts :
+            verts, uv_codes = verts_data[ vert.index ]
+            uv_coord = uv_codes[ verts.index( vert ) ][ uv_idx ]
 
-        for vertex_idx in range( len( mesh.verts ) ) :
-            uv_tuple = uvs.get( vertex_idx )
-
-            if uv_tuple is None :
-                uv_tuple = ( 0, 0 )
-
-            gbx.real( uv_tuple[ 0 ] )
-            gbx.real( uv_tuple[ 1 ] )
+            gbx.real( uv_coord[ 0 ] )
+            gbx.real( uv_coord[ 1 ] )
 
     gbx.real( object.dimensions.x / 2 )
     gbx.real( object.dimensions.z / 2 )

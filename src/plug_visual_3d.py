@@ -26,7 +26,7 @@ def plug_visual_3d( gbx : BlenderGbx, object : bpy.types.Object ) :
                     [ vert ],    # verts
                     [ uv_code ], # uv_codes
                 )
-                    else :
+            else :
                 verts, uv_codes = verts_data[ vert.index ]
 
             if uv_code not in uv_codes :
@@ -37,7 +37,7 @@ def plug_visual_3d( gbx : BlenderGbx, object : bpy.types.Object ) :
                 verts_data[ new_vert.index ] = verts_data[ vert.index ]
                 uv_codes.append( uv_code )
                 vert = new_vert
-                else :
+            else :
                 vert = verts[ uv_codes.index( uv_code ) ]
 
             loops.append( vert.index )
@@ -80,10 +80,11 @@ def plug_visual_3d( gbx : BlenderGbx, object : bpy.types.Object ) :
     for vert in mesh.verts :
         gbx.real( vert.co.x )
         gbx.real( vert.co.z )
-        gbx.real( -vert.co.y )
+        gbx.real( vert.co.y )
         gbx.real( vert.normal.x )
         gbx.real( vert.normal.z )
-        gbx.real( -vert.normal.y )
+        gbx.real( vert.normal.y )
+
         gbx.real( object.color[ 0 ] )
         gbx.real( object.color[ 1 ] )
         gbx.real( object.color[ 2 ] )
@@ -96,6 +97,8 @@ def plug_visual_3d( gbx : BlenderGbx, object : bpy.types.Object ) :
     gbx.nat32( 0x0906A001 )
     gbx.nat32( 0x00000001 )
 # 09-057-000 -- Start
+    loops.reverse()
+
     gbx.nat32( 0x09057000 )
     gbx.nat32( 0x00000002 )
     gbx.nat32( len( loops ) )

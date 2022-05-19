@@ -3,7 +3,7 @@ bl_info = {
     "author": "Tomek0055",
     "version" : (1, 0, 0),
     "blender" : (3, 1, 2),
-    "doc_url" : "https://github.com/kemot0055/io_scene_gbx",
+    "doc_url" : "https://github.com/tomek0055/io_scene_gbx",
     "support" : "COMMUNITY",
     "category" : "Import-Export",
     "location" : "File > Import-Export",

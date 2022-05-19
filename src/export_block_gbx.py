@@ -125,12 +125,16 @@ class ExportBlockGbx( bpy.types.Operator, ExportHelper ):
         description = "Vehicle spawn location",
     )
 
-    filename_ext = ".Block.Gbx"
-    check_extension = False
-
     @classmethod
     def poll( self, context : bpy.context ) :
         return context.mode == "OBJECT"
+
+    def invoke( self, context : bpy.context, _event ) :
+        if not self.filepath :
+            self.filepath = "Model.Block.Gbx"
+
+        context.window_manager.fileselect_add( self )
+        return { "RUNNING_MODAL" }
 
     def execute( self, context : bpy.context ) :
         gbx = BlenderGbx(

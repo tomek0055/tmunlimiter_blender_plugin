@@ -86,7 +86,7 @@ class BlenderGbx :
         if len( mw_id ) == 0 :
             self.nat32( 0xFFFFFFFF )
         elif mw_id in self.mw_ids :
-            self.nat32( 0x40000001 + self.mw_ids.index( id ) )
+            self.nat32( 0x40000001 + self.mw_ids.index( mw_id ) )
         else :
             self.mw_ids.append( mw_id )
             self.nat32( 0x40000000 )

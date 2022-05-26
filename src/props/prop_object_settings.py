@@ -35,10 +35,10 @@ class TMUnlimiterObjectSettings( bpy.types.Panel ) :
         if props.texture_type == "Custom" :
             layout = self.layout.box()
 
-            layout.prop( props.texture_custom, "type" )
+            layout.prop( props.texture_custom, "usage" )
             layout.prop( props.texture_custom, "diffuse_filepath" )
 
-            if props.texture_custom.type == "1" :
+            if props.texture_custom.usage == "1" :
                 layout.prop( props.texture_custom, "specular_filepath" )
                 layout.prop( props.texture_custom, "normal_filepath" )
             

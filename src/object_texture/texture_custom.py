@@ -1,8 +1,9 @@
+from ..blender_gbx import BlenderGbx
 import bpy
 
 class TMUnlimiterObjectTextureCustom( bpy.types.PropertyGroup ) :
 
-    type : bpy.props.EnumProperty(
+    usage : bpy.props.EnumProperty(
         name = "Texture usage",
         items = [
             ( "0", "Use only diffuse", "Use only diffuse" ),
@@ -55,3 +56,35 @@ class TMUnlimiterObjectTextureCustom( bpy.types.PropertyGroup ) :
         ],
         default = "Clamp",
     )
+
+    def get_textures( self, gbx : BlenderGbx ) -> list[ int ] :
+        custom_texture_refs : dict[ str, tuple[ int, list[ str ] ] ] = gbx.save_context[ "custom_texture_refs" ]
+        textures : list[ int ] = []
+
+        if self.usage == "0" :
+            texture_filepaths : list[ str ] = [
+                self.diffuse_filepath,
+            ]
+        elif self.usage == "1" :
+            texture_filepaths : list[ str ] = [
+                self.diffuse_filepath,
+                self.specular_filepath,
+                self.normal_filepath,
+            ]
+        else :
+            raise Exception( "Unknown texture usage {0}".format( self.usage ) )
+
+        for texture_filepath in texture_filepaths :
+            if texture_filepath in custom_texture_refs :
+                textures.append( custom_texture_refs[ texture_filepath ][ 0 ] )
+            else :
+                gbx.instances += 1
+
+                custom_texture_refs[ texture_filepath ] = (
+                    gbx.instances,
+                    texture_filepath.split( "/" ), # XXX: OS filepath separator objections? 🤔
+                )
+
+                textures.append( gbx.instances )
+
+        return textures

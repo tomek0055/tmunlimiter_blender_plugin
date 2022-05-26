@@ -67,11 +67,12 @@ class BlenderGbx :
     def string( self, value : str, is_wide = False ) :
         string( self.body, value, is_wide )
 
-    def external_ref( self, path : list[ str ], file_name : str ) :
+    def external_ref( self, path : list[ str ], file_name : str, use_fid : bool = False ) :
         self.instances += 1
 
         self.external_refs.append( {
             "path" : path,
+            "use_fid" : use_fid,
             "file_name" : file_name,
             "instance_idx" : self.instances,
         } )
@@ -182,7 +183,7 @@ class BlenderGbx :
                 string( header, external_ref[ "file_name" ] )
                 
                 nat32( header, external_ref[ "instance_idx" ] )
-                nat32( header, 0 )
+                nat32( header, int( external_ref[ "use_fid" ] ) )
 
                 nat32( header, folder_idx )
 

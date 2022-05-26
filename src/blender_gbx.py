@@ -115,7 +115,7 @@ class BlenderGbx :
             function( self, *function_args, **function_kwargs ),
         )
 
-    def save_folder_recursive( self, header : BytesIO, folder_name : str, folder_data : dict ) :
+    def __save_folder_recursive__( self, header : BytesIO, folder_name : str, folder_data : dict ) :
         child_folders = folder_data[ "child_folders" ]
 
         string( header, folder_name )
@@ -173,7 +173,7 @@ class BlenderGbx :
             nat32( header, len( child_folders ) )
 
             for child_folder_name, child_folder in child_folders.items() :
-                self.save_folder_recursive( header, child_folder_name, child_folder )
+                self.__save_folder_recursive__( header, child_folder_name, child_folder )
             
             for external_instance in external_instances :
                 folder_idx = external_instance[ "folder_idx" ]

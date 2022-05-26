@@ -20,6 +20,9 @@ def nat32( data : BytesIO, value : int ) :
 def real( data : BytesIO, value : float ) :
     data.write( struct.pack( "f", value ) )
 
+def data( data : BytesIO, value : BytesIO ) :
+    data.write( value.getvalue() )
+
 def text( data : BytesIO, value : str, is_wide : bool = False ) :
     data.write( value.encode( "utf_16_le" if is_wide else "utf_8" ) )
 
@@ -66,6 +69,9 @@ class BlenderGbx :
 
     def string( self, value : str, is_wide = False ) :
         string( self.body, value, is_wide )
+    
+    def data( self, value : BytesIO ) :
+        data( self.body, value )
 
     def external_ref( self, path : list[ str ], file_name : str, use_fid : bool = False ) :
         self.instances += 1
@@ -114,6 +120,12 @@ class BlenderGbx :
             valid_ref,
             function( self, *function_args, **function_kwargs ),
         )
+
+    def attach_body( self, new_body : BytesIO = BytesIO() ) -> BytesIO :
+        detached_body = self.body
+        self.body = new_body
+
+        return detached_body
 
     def __save_folder_recursive__( self, header : BytesIO, folder_name : str, folder_data : dict ) :
         child_folders = folder_data[ "child_folders" ]

@@ -17,7 +17,7 @@ def plug_surface_geom_mesh( gbx : BlenderGbx, object : bpy.types.Object ) -> lis
             lambda face : \
                 mesh_data.materials[ face.material_index ] is not None \
                     and \
-                mesh_data.materials[ face.material_index ].unlimiter_data.collision_type != "NO_COLLISION",
+                mesh_data.materials[ face.material_index ].unlimiter_material_collision.is_collidable,
             
             mesh.faces
         )
@@ -98,6 +98,6 @@ def plug_surface( gbx : BlenderGbx, object : bpy.types.Object ) :
 
     for material in materials :
         gbx.nat32( 0 )
-        gbx.nat16( int( material.unlimiter_data.collision_material ) )
+        gbx.nat16( int( material.unlimiter_material_collision.collision_material ) )
 
     gbx.nat32( 0xFACADE01 )

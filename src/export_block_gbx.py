@@ -72,7 +72,7 @@ class ExportBlockGbx( bpy.types.Operator, ExportHelper ):
         gbx.do_save( self.properties.filepath )
         return { "FINISHED" }
 
-def add_block_v1_gbx_export( self, context ) :
+def add_export( self, context ) :
     self.layout.operator( ExportBlockGbx.bl_idname )
 
 def __register__() :
@@ -81,10 +81,10 @@ def __register__() :
     object_settings_register()
     material_collision_register()
 
-    bpy.types.TOPBAR_MT_file_export.append( add_block_v1_gbx_export )
+    bpy.types.TOPBAR_MT_file_export.append( add_export )
 
 def __unregister__() :
-    bpy.types.TOPBAR_MT_file_export.remove( add_block_v1_gbx_export )
+    bpy.types.TOPBAR_MT_file_export.remove( add_export )
 
     material_collision_unregister()
     object_settings_unregister()

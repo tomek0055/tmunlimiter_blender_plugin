@@ -47,13 +47,13 @@ class ExportSolidGbx( bpy.types.Operator, ExportHelper ):
 
         return { "FINISHED" }
 
-def add_solid_gbx_export( self, context ) :
+def add_export( self, context ) :
     self.layout.operator( ExportSolidGbx.bl_idname )
 
 def __register__() :
     bpy.utils.register_class( ExportSolidGbx )
-    bpy.types.TOPBAR_MT_file_export.append( add_solid_gbx_export )
+    bpy.types.TOPBAR_MT_file_export.append( add_export )
 
 def __unregister__() :
-    bpy.types.TOPBAR_MT_file_export.remove( add_solid_gbx_export )
+    bpy.types.TOPBAR_MT_file_export.remove( add_export )
     bpy.utils.unregister_class( ExportSolidGbx )

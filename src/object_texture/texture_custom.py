@@ -57,7 +57,7 @@ class TMUnlimiterObjectTextureCustom( bpy.types.PropertyGroup ) :
         default = "Clamp",
     )
 
-    def get_textures( self, gbx : BlenderGbx ) -> list[ int ] :
+    def get_texture_refs( self, gbx : BlenderGbx ) -> list[ int ] :
         custom_texture_refs : dict[ str, tuple[ int, list[ str ] ] ] = gbx.save_context[ "custom_texture_refs" ]
         textures : list[ int ] = []
 
@@ -72,7 +72,7 @@ class TMUnlimiterObjectTextureCustom( bpy.types.PropertyGroup ) :
                 self.normal_filepath,
             ]
         else :
-            raise Exception( "Unknown texture usage {0}".format( self.usage ) )
+            raise Exception( "Unknown texture usage \"{0}\"".format( self.usage ) )
 
         for texture_filepath in texture_filepaths :
             if texture_filepath in custom_texture_refs :

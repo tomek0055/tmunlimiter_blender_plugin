@@ -43,13 +43,13 @@ def plug_visual_3d( gbx : BlenderGbx, object : bpy.types.Object ) :
             loops.append( vert.index )
 
     if len( mesh.verts ) > 65535 :
-        raise "Object exceeds 65535 vertices"
+        raise Exception( "Object \"{0}\" exceeds 65535 vertices".format( object.name ) )
 
 # 09-01E-000 -- Start
     gbx.nat32( 0x0901E000 )
 # 09-006-00E -- Start
     gbx.nat32( 0x0900600E )
-    gbx.nat32( 0x00000038 )
+    gbx.nat32( 0x00020038 )
     gbx.nat32( len( uvs ) )
     gbx.nat32( len( mesh.verts ) )
     gbx.nat32( 0x00000000 )

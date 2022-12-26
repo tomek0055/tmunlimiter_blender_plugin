@@ -1,30 +1,40 @@
-from .blender_gbx import BlenderGbx
+from .blender_gbx import HeaderChunk, GbxArchive
 from .plug_solid import plug_solid
 import bpy
 
-CLASS_ID = 0x3F004000
+CLASS_ID = 0x3f002000
 
+# Work in progress
 def unlimiter_block_v1(
-    gbx : BlenderGbx,
-    block_id : str,
-    block_author : str,
-    spawn_point : list[ float ],
-    root : bpy.types.Object
+    gbx: GbxArchive,
+    block_id: str,
+    block_author: str,
+    spawn_point: list[float],
+    root: bpy.types.Collection
 ) :
+    test_header_chunk = HeaderChunk( 0x3f002000 )
+    test_header_chunk.mw_id( block_id )
+    test_header_chunk.mw_id( block_author )
+    gbx.header_chunk( test_header_chunk )
+
     gbx.nat32( CLASS_ID )
-    # spawn point
-    gbx.real( spawn_point[ 0 ] )
-    gbx.real( spawn_point[ 1 ] )
-    gbx.real( spawn_point[ 2 ] )
-    # block id
-    gbx.string( block_id )
-    # block author
-    gbx.string( block_author )
-    # unlimiter material definitions - not supported by this exporter
-    gbx.nat32( 0 )
+    gbx.nat8( 0 )
+
+    if "custom_texture_refs" not in gbx.context :
+        gbx.context[ "custom_texture_refs" ] = {}
+
     # solid
+    old_body = gbx.attach_buffer()
     plug_solid( gbx, root )
-    # normally 0xfacade01 should be written here
-    # but unlimiter custom block archive function
-    # have custom logic, and does not inherit original game logic
-    # gbx.nat32( 0xFACADE01 )
+    new_body = gbx.attach_buffer( old_body )
+
+    # unlimiter custom texture references
+    custom_texture_references = gbx.context[ "custom_texture_refs" ]
+    gbx.nat32( len( custom_texture_references ) )
+
+    for instance_idx, path in custom_texture_references.values() :
+        gbx.nat32( instance_idx )
+        gbx.string( path )
+
+    gbx.data( new_body )
+    gbx.nat32( 0xFACADE01 )

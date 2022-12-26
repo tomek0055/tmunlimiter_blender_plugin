@@ -5,29 +5,31 @@ from .game_materials.coast import MATERIALS_COAST
 from .game_materials.rally import MATERIALS_RALLY
 from .game_materials.speed import MATERIALS_SPEED
 from .game_materials.bay import MATERIALS_BAY
+from ..blender_gbx import ExternalRef
 import bpy
 
 class TMUnlimiterObjectTextureGame( bpy.types.PropertyGroup ) :
 
-    environment : bpy.props.EnumProperty(
+    environment: bpy.props.EnumProperty(
         name = "Environment",
         items = [
-            ( "Desert", "Desert", "Desert (Speed) environment" ),
+            ( "Speed", "Desert", "Desert (Speed) environment" ),
             ( "Rally", "Rally", "Rally environment" ),
-            ( "Snow", "Snow", "Snow (Alpine) environment" ),
+            ( "Alpine", "Snow", "Snow (Alpine) environment" ),
             ( "Island", "Island", "Island environment" ),
             ( "Coast", "Coast", "Coast environment" ),
             ( "Bay", "Bay", "Bay environment" ),
             ( "Stadium", "Stadium", "Stadium environment" ),
-        ]
+        ],
+        default = "Stadium",
     )
 
-    def get_textures( self, context ) :
-        if self.environment == "Desert" :
+    def get_environment_materials( self, context ) :
+        if self.environment == "Speed" :
             return MATERIALS_SPEED
         elif self.environment == "Rally" :
             return MATERIALS_RALLY
-        elif self.environment == "Snow" :
+        elif self.environment == "Alpine" :
             return MATERIALS_ALPINE
         elif self.environment == "Island" :
             return MATERIALS_ISLAND
@@ -37,10 +39,16 @@ class TMUnlimiterObjectTextureGame( bpy.types.PropertyGroup ) :
             return MATERIALS_BAY
         elif self.environment == "Stadium" :
             return MATERIALS_STADIUM
+        else :
+            raise "Unknown environment \"{0}\"".format( self.environment )
 
-        return []
+    def get_material_path( self ) :
+        return (
+            ( self.environment, "Media", "Material" ),
+            ExternalRef( self.game_material )
+        )
 
-    game_material : bpy.props.EnumProperty(
+    game_material: bpy.props.EnumProperty(
         name = "Game material",
-        items = get_textures,
+        items = get_environment_materials,
     )

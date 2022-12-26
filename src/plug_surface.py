@@ -1,20 +1,20 @@
-from .blender_gbx import BlenderGbx
+from .blender_gbx import GbxArchive
 import bmesh
 import bpy
 
-def plug_surface_geom_mesh( gbx : BlenderGbx, object : bpy.types.Object ) -> list[ bpy.types.Material ] :
+def plug_surface_geom_mesh( gbx: GbxArchive, object: bpy.types.Object ) -> list[bpy.types.Material] :
     gbx.nat32( 0x0900F000 )
     gbx.nat32( 0x0900F002 )
 
-    mesh_data : bpy.types.Mesh = object.data
+    mesh_data: bpy.types.Mesh = object.data
 
     mesh = bmesh.new()
-    mesh.from_object( object, gbx.depsgraph )
+    mesh.from_object( object, gbx.context[ "depsgraph" ] )
     bmesh.ops.triangulate( mesh, faces = mesh.faces )
 
-    faces : list[ bmesh.types.BMFace ] = list(
+    faces: list[bmesh.types.BMFace] = list(
         filter(
-            lambda face : \
+            lambda face: \
                 mesh_data.materials[ face.material_index ] is not None \
                     and \
                 mesh_data.materials[ face.material_index ].unlimiter_material_collision.is_collidable,
@@ -24,10 +24,10 @@ def plug_surface_geom_mesh( gbx : BlenderGbx, object : bpy.types.Object ) -> lis
     )
 
     vertices_index = set()
-    material_translation_table : dict[ int, ( int, bpy.types.Material ) ] = {}
+    material_translation_table: dict[int, ( int, bpy.types.Material )] = {}
 
     for face in faces :
-        loops : list[ bmesh.types.BMLoop ] = face.loops
+        loops : list[bmesh.types.BMLoop] = face.loops
 
         for loop in loops :
             vertices_index.add( loop.vert.index )
@@ -44,7 +44,7 @@ def plug_surface_geom_mesh( gbx : BlenderGbx, object : bpy.types.Object ) -> lis
     gbx.nat32( 1 )
 
     # verts
-    vertex_translation_table : dict[ int, int ] = {}
+    vertex_translation_table: dict[int, int] = {}
 
     mesh.verts.ensure_lookup_table()
     gbx.nat32( len( vertices_index ) )
@@ -67,7 +67,7 @@ def plug_surface_geom_mesh( gbx : BlenderGbx, object : bpy.types.Object ) -> lis
         gbx.real( -face.normal.y )
         gbx.real( 0 )
         
-        loops : list[ bmesh.types.BMLoop ] = face.loops
+        loops: list[bmesh.types.BMLoop] = face.loops
 
         for loop in loops :
             gbx.nat32( vertex_translation_table[ loop.vert.index ] )
@@ -84,12 +84,12 @@ def plug_surface_geom_mesh( gbx : BlenderGbx, object : bpy.types.Object ) -> lis
 
     return list(
         map(
-            lambda key : material_translation_table[ key ][ 1 ],
+            lambda key: material_translation_table[ key ][ 1 ],
             material_translation_table
         )
     )
 
-def plug_surface( gbx : BlenderGbx, object : bpy.types.Object ) :
+def plug_surface( gbx: GbxArchive, object: bpy.types.Object ) :
     gbx.nat32( 0x0900C000 )
     gbx.nat32( 0x0900C000 )
     _, materials = gbx.mw_ref( plug_surface_geom_mesh, object )

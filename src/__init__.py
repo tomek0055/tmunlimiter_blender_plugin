@@ -20,12 +20,12 @@ from .export_solid_gbx import (
 )
 
 def register() :
-    export_solid_gbx_register()
     export_block_gbx_register()
+    export_solid_gbx_register()
 
 def unregister() :
-    export_solid_gbx_unregister()
     export_block_gbx_unregister()
+    export_solid_gbx_unregister()
 
 if __name__ == "__main__" :
     register()

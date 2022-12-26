@@ -1,9 +1,9 @@
-from ..blender_gbx import BlenderGbx
+from ..blender_gbx import GbxArchive
 import bpy
 
 class TMUnlimiterObjectTextureCustom( bpy.types.PropertyGroup ) :
 
-    usage : bpy.props.EnumProperty(
+    usage: bpy.props.EnumProperty(
         name = "Texture usage",
         items = [
             ( "0", "Use only diffuse", "Use only diffuse" ),
@@ -12,30 +12,30 @@ class TMUnlimiterObjectTextureCustom( bpy.types.PropertyGroup ) :
         default = "0",
     )
 
-    diffuse_filepath : bpy.props.StringProperty(
+    diffuse_filepath: bpy.props.StringProperty(
         name = "Diffuse texture file path",
         description = "Diffuse texture file path relative to the \"Texures\" directory",
     )
 
-    specular_filepath : bpy.props.StringProperty(
+    specular_filepath: bpy.props.StringProperty(
         name = "Specular texture file path",
         description = "Specular texture file path relative to the \"Textures\" directory",
     )
 
-    normal_filepath : bpy.props.StringProperty(
+    normal_filepath: bpy.props.StringProperty(
         name = "Normal texture file path",
         description = "Normal texture file path relative to the \"Textures\" directory",
     )
 
-    is_translucent : bpy.props.BoolProperty(
+    is_translucent: bpy.props.BoolProperty(
         name = "Is translucent",
     )
 
-    is_double_sided : bpy.props.BoolProperty(
+    is_double_sided: bpy.props.BoolProperty(
         name = "Is double sided",
     )
 
-    texture_filter : bpy.props.EnumProperty(
+    texture_filter: bpy.props.EnumProperty(
         name = "Texture filtering",
         items = [
             ( "Point", "Point", "Point" ),
@@ -46,7 +46,7 @@ class TMUnlimiterObjectTextureCustom( bpy.types.PropertyGroup ) :
         default = "Point",
     )
 
-    texture_address : bpy.props.EnumProperty(
+    texture_address: bpy.props.EnumProperty(
         name = "Texture addressing",
         items = [
             ( "Wrap", "Wrap", "Wrap" ),
@@ -57,16 +57,16 @@ class TMUnlimiterObjectTextureCustom( bpy.types.PropertyGroup ) :
         default = "Clamp",
     )
 
-    def get_texture_refs( self, gbx : BlenderGbx ) -> list[ int ] :
-        custom_texture_refs : dict[ str, tuple[ int, list[ str ] ] ] = gbx.save_context[ "custom_texture_refs" ]
-        textures : list[ int ] = []
+    def get_texture_refs( self, gbx: GbxArchive ) -> list[int] :
+        custom_texture_refs: dict[str, tuple[int, str]] = gbx.context[ "custom_texture_refs" ]
+        textures: list[int] = []
 
         if self.usage == "0" :
-            texture_filepaths : list[ str ] = [
+            texture_filepaths: list[str] = [
                 self.diffuse_filepath,
             ]
         elif self.usage == "1" :
-            texture_filepaths : list[ str ] = [
+            texture_filepaths: list[str] = [
                 self.diffuse_filepath,
                 self.specular_filepath,
                 self.normal_filepath,
@@ -78,13 +78,13 @@ class TMUnlimiterObjectTextureCustom( bpy.types.PropertyGroup ) :
             if texture_filepath in custom_texture_refs :
                 textures.append( custom_texture_refs[ texture_filepath ][ 0 ] )
             else :
-                gbx.instances += 1
+                gbx.__instances += 1
 
                 custom_texture_refs[ texture_filepath ] = (
-                    gbx.instances,
-                    texture_filepath.split( "/" ), # XXX: OS filepath separator objections? 🤔
+                    gbx.__instances,
+                    texture_filepath
                 )
 
-                textures.append( gbx.instances )
+                textures.append( gbx.__instances )
 
         return textures

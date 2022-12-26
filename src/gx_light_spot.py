@@ -1,4 +1,4 @@
-from .blender_gbx import BlenderGbx
+from .blender_gbx import GbxArchive
 
 from math import (
     pi,
@@ -11,7 +11,7 @@ from math import (
 
 import bpy
 
-def gx_light_spot( gbx : BlenderGbx, light : bpy.types.SpotLight ) :
+def gx_light_spot( gbx: GbxArchive, light: bpy.types.SpotLight ) :
     gbx.nat32( 0x0400B000 )
 
     gbx.nat32( 0x04001001 )

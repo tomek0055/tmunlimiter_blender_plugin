@@ -14,7 +14,7 @@ from .unlimiter_block_v1 import (
 )
 
 from bpy_extras.io_utils import ExportHelper
-from .blender_gbx import BlenderGbx
+from .blender_gbx import GbxArchive
 import bpy
 
 class ExportBlockGbx( bpy.types.Operator, ExportHelper ):
@@ -24,22 +24,22 @@ class ExportBlockGbx( bpy.types.Operator, ExportHelper ):
     bl_idname = "export_scene.block_v1_gbx"
     bl_options = { "PRESET" }
 
-    filter_glob : bpy.props.StringProperty(
+    filter_glob: bpy.props.StringProperty(
         default = "*.Block.Gbx",
         options = { "HIDDEN" },
     )
     
-    block_id : bpy.props.StringProperty(
+    block_id: bpy.props.StringProperty(
         name = "Block ID",
         description = "Block unique identifier",
     )
 
-    block_author : bpy.props.StringProperty(
+    block_author: bpy.props.StringProperty(
         name = "Block author",
         description = "Block author name",
     )
 
-    spawn_point : bpy.props.FloatVectorProperty(
+    spawn_point: bpy.props.FloatVectorProperty(
         name = "Spawn point",
         description = "Vehicle spawn location",
     )
@@ -48,18 +48,17 @@ class ExportBlockGbx( bpy.types.Operator, ExportHelper ):
     def poll( self, context : bpy.context ) :
         return context.mode == "OBJECT"
 
-    def invoke( self, context : bpy.context, _event ) :
+    def invoke( self, context: bpy.context ) :
         if not self.filepath :
             self.filepath = "Model.Block.Gbx"
 
         context.window_manager.fileselect_add( self )
         return { "RUNNING_MODAL" }
 
-    def execute( self, context : bpy.context ) :
-        gbx = BlenderGbx(
-            CLASS_ID,
-            context.evaluated_depsgraph_get()
-        )
+    def execute( self, context: bpy.context ) :
+        gbx = GbxArchive( CLASS_ID )
+        gbx.context[ "depsgraph" ] = context.evaluated_depsgraph_get()
+
 
         unlimiter_block_v1(
             gbx,

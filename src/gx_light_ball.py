@@ -1,8 +1,7 @@
-from .blender_gbx import BlenderGbx
-from math import degrees
+from .blender_gbx import GbxArchive
 import bpy
 
-def gx_light_ball( gbx : BlenderGbx, light : bpy.types.PointLight ) :
+def gx_light_ball( gbx: GbxArchive, light: bpy.types.PointLight ) :
     gbx.nat32( 0x04002000 )
 
     gbx.nat32( 0x04001001 )

@@ -1,5 +1,5 @@
 from bpy_extras.io_utils import ExportHelper
-from .blender_gbx import BlenderGbx
+from .blender_gbx import GbxArchive
 from .plug_solid import plug_solid
 import bpy
 
@@ -10,12 +10,12 @@ class ExportSolidGbx( bpy.types.Operator, ExportHelper ):
     bl_idname = "export_scene.gbx"
     bl_options = { "PRESET" }
 
-    filter_glob : bpy.props.StringProperty(
+    filter_glob: bpy.props.StringProperty(
         default = "*.Solid.Gbx",
         options = { "HIDDEN" },
     )
 
-    use_active_collection : bpy.props.BoolProperty(
+    use_active_collection: bpy.props.BoolProperty(
         name = "Active Collection",
         default = False,
         description = "Export only objects from the active collection",
@@ -25,17 +25,17 @@ class ExportSolidGbx( bpy.types.Operator, ExportHelper ):
     check_extension = False
 
     @classmethod
-    def poll( self, context : bpy.context ) :
+    def poll( self, context: bpy.context ) :
         return context.mode == "OBJECT"
 
     def execute( self, context ) :
-        gbx = BlenderGbx(
+        gbx = GbxArchive(
             0x09005000,
-            context.evaluated_depsgraph_get(),
             {
-                "plug_surface" : lambda *_, **__ : False
+                "plug_surface" : lambda *_, **__: False
             }
         )
+        gbx.context[ "depsgraph" ] = context.evaluated_depsgraph_get()
 
         if self.use_active_collection :
             collection = context.collection

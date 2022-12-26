@@ -1,10 +1,10 @@
-from .blender_gbx import BlenderGbx
+from .blender_gbx import GbxArchive
 import bmesh
 import bpy
 
-def plug_visual_3d( gbx : BlenderGbx, object : bpy.types.Object ) :
+def plug_visual_3d( gbx: GbxArchive, object: bpy.types.Object ) :
     mesh = bmesh.new()
-    mesh.from_object( object, gbx.depsgraph )
+    mesh.from_object( object, gbx.context[ "depsgraph" ] )
     bmesh.ops.triangulate( mesh, faces = mesh.faces )
 
     uvs = list( enumerate( mesh.loops.layers.uv.values() ) )
@@ -66,6 +66,7 @@ def plug_visual_3d( gbx : BlenderGbx, object : bpy.types.Object ) :
             gbx.real( uv_coord[ 0 ] )
             gbx.real( uv_coord[ 1 ] )
 
+    # XXX: Proper calculation of the GmBoxAligned?
     gbx.real( object.dimensions.x / 2 )
     gbx.real( object.dimensions.z / 2 )
     gbx.real( object.dimensions.y / 2 )

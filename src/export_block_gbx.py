@@ -14,6 +14,7 @@ from .unlimiter_block_v1 import (
 )
 
 from bpy_extras.io_utils import ExportHelper
+from traceback import print_exception
 from .blender_gbx import GbxArchive
 import bpy
 
@@ -44,8 +45,10 @@ class ExportBlockGbx( bpy.types.Operator, ExportHelper ):
         description = "Vehicle spawn location",
     )
 
+    check_extension = None
+
     @classmethod
-    def poll( self, context : bpy.context ) :
+    def poll( self, context: bpy.context ) :
         return context.mode == "OBJECT"
 
     def invoke( self, context: bpy.context ) :
@@ -59,14 +62,23 @@ class ExportBlockGbx( bpy.types.Operator, ExportHelper ):
         gbx = GbxArchive( CLASS_ID )
         gbx.context[ "depsgraph" ] = context.evaluated_depsgraph_get()
 
+        try :
+            if not self.block_id :
+                raise Exception( "Block ID is empty" )
+            elif not self.block_author :
+                raise Exception( "Block author is empty" )
 
-        unlimiter_block_v1(
-            gbx,
-            self.block_id,
-            self.block_author,
-            self.spawn_point,
-            context.active_object,
-        )
+            unlimiter_block_v1(
+                gbx,
+                self.block_id,
+                self.block_author,
+                self.spawn_point,
+                context.collection,
+            )
+        except Exception as error :
+            self.report( { "ERROR" }, str( error ) )
+            print_exception( error )
+            return { "CANCELLED" }
 
         gbx.do_save( self.properties.filepath )
         return { "FINISHED" }

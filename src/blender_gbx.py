@@ -201,14 +201,14 @@ class GbxArchive( GbxContainer ) :
                 header_chunk_data = header_chunk.buffer.getvalue()
                 header_chunk_size = len( header_chunk_data )
 
+                header_chunks_size += 8 + header_chunk_size
+
                 if header_chunk.is_heavy :
                     header_chunk_size |= 0x80000000
 
                 nat32( header_chunk_entries, header_chunk.header_chunk_id )
                 nat32( header_chunk_entries, header_chunk_size )
                 data( header_chunk_buffers, header_chunk_data )
-
-                header_chunks_size += 8 + header_chunk_size
 
             nat32( header, header_chunks_size )
             data( header, header_chunk_entries )

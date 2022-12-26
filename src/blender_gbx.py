@@ -1,93 +1,66 @@
 from io import BytesIO
 import struct
 import lzo
-import bpy
 
 from .validators import (
     validate_plug_surface,
+    validate_gx_light_point,
     validate_plug_visual_3d,
 )
 
-def nat8( data : BytesIO, value : int ) :
+def nat8( data: BytesIO, value: int ) :
     data.write( value.to_bytes( 1, "little" ) )
 
-def nat16( data : BytesIO, value : int ) :
+def nat16( data: BytesIO, value: int ) :
     data.write( value.to_bytes( 2, "little" ) )
 
-def nat32( data : BytesIO, value : int ) :
+def nat32( data: BytesIO, value: int ) :
     data.write( value.to_bytes( 4, "little" ) )
 
-def real( data : BytesIO, value : float ) :
+def real( data: BytesIO, value: float ) :
     data.write( struct.pack( "f", value ) )
 
-def data( data : BytesIO, value : BytesIO ) :
-    data.write( value.getvalue() )
+def data( data: BytesIO, value: bytes | BytesIO ) :
+    if type( value ) is bytes :
+        data.write( value )
+    elif type( value ) is BytesIO :
+        data.write( value.getvalue() )
 
-def text( data : BytesIO, value : str, is_wide : bool = False ) :
+def text( data: BytesIO, value: str, is_wide = False ) :
     data.write( value.encode( "utf_16_le" if is_wide else "utf_8" ) )
 
-def string( data : BytesIO, value : str, is_wide : bool = False ) :
+def string( data: BytesIO, value: str, is_wide = False ) :
     nat32( data, len( value ) )
     text( data, value, is_wide )
 
-class BlenderGbx :
+class GbxContainer :
 
-    def __init__(
-        self,
-        class_id : int,
-        depsgraph : bpy.types.Depsgraph,
-        validators : dict = {}
-    ) :
-        self.mw_ids = []
-        self.mw_id_used = False
+    def __init__( self ) :
+        self.mw_ids = None
+        self.buffer = BytesIO()
+        self.context = {}
 
-        self.body = BytesIO()
+    def nat8( self, value: int ) :
+        nat8( self.buffer, value )
 
-        self.class_id = class_id
-        self.depsgraph = depsgraph
-        self.instances = 0
+    def nat16( self, value: int ) :
+        nat16( self.buffer, value )
 
-        self.external_refs = []
+    def nat32( self, value: int ) :
+        nat32( self.buffer, value )
 
-        self.validators = {
-            "plug_surface" : validate_plug_surface,
-            **validators,
-            "plug_visual_3d" : validate_plug_visual_3d,
-        }
+    def real( self, value: float ) :
+        real( self.buffer, value )
 
-    def nat8( self, value : int ) :
-        nat8( self.body, value )
+    def string( self, value: str, is_wide = False ) :
+        string( self.buffer, value, is_wide )
 
-    def nat16( self, value : int ) :
-        nat16( self.body, value )
+    def data( self, value: BytesIO ) :
+        data( self.buffer, value )
 
-    def nat32( self, value : int ) :
-        nat32( self.body, value )
-
-    def real( self, value : float ) :
-        real( self.body, value )
-
-    def string( self, value : str, is_wide = False ) :
-        string( self.body, value, is_wide )
-    
-    def data( self, value : BytesIO ) :
-        data( self.body, value )
-
-    def external_ref( self, path : list[ str ], file_name : str, use_fid : bool = False ) :
-        self.instances += 1
-
-        self.external_refs.append( {
-            "path" : path,
-            "use_fid" : use_fid,
-            "file_name" : file_name,
-            "instance_idx" : self.instances,
-        } )
-
-        self.nat32( self.instances )
-
-    def mw_id( self, mw_id : str = "" ) :
-        if not self.mw_id_used :
-            self.mw_id_used = True
+    def mw_id( self, mw_id = "" ) :
+        if self.mw_ids is None :
+            self.mw_ids = []
             self.nat32( 0x00000003 )
 
         if len( mw_id ) == 0 :
@@ -99,11 +72,97 @@ class BlenderGbx :
             self.nat32( 0x40000000 )
             self.string( mw_id )
 
+    def attach_buffer( self, new_buffer: BytesIO = BytesIO() ) -> BytesIO :
+        detached_buffer = self.buffer
+        self.buffer = new_buffer
+
+        return detached_buffer
+
+class HeaderChunk( GbxContainer ) :
+
+    def __init__( self, header_chunk_id: int, is_heavy = False ) :
+        GbxContainer.__init__( self )
+
+        self.is_heavy = is_heavy
+        self.header_chunk_id = header_chunk_id
+
+class ExternalRef :
+
+    def __init__( self, file_name: str, use_fid = False ) :
+        self.use_fid = use_fid
+        self.file_name = file_name
+    
+    def archive( self, buffer: BytesIO, instance_index: int, folder_index: int ) :
+        nat32( buffer, 1 ) # flags
+        string( buffer, self.file_name )
+        nat32( buffer, instance_index )
+        nat32( buffer, int( self.use_fid ) )
+        nat32( buffer, folder_index )
+
+class GbxArchive( GbxContainer ) :
+
+    class FolderRef :
+
+        def __init__( self ) :
+            self.subfolders: dict[str, GbxArchive.FolderRef] = {}
+
+        def to_list( self, folders: list ) :
+            folders.append( self )
+
+            for subfolder_name in self.subfolders :
+                self.subfolders[ subfolder_name ].to_list( folders )
+
+        def archive( self, buffer: BytesIO, folder_name: str | None ) :
+            if folder_name :
+                string( buffer, folder_name )
+
+            nat32( buffer, len( self.subfolders ) )
+
+            for subfolder_name in self.subfolders :
+                self.subfolders[ subfolder_name ].archive( buffer, subfolder_name )
+
+    def __init__( self, class_id: int, validators: dict = {} ) :
+        GbxContainer.__init__( self )
+
+        self.__instances = 0
+        self.__root_folder = GbxArchive.FolderRef()
+        self.__header_chunks: list[HeaderChunk] = []
+        self.__external_refs: list[tuple[ExternalRef, GbxArchive.FolderRef, int]] = []
+
+        self.__validators = {
+            "plug_surface" : validate_plug_surface,
+            "gx_light_point" : validate_gx_light_point,
+            **validators,
+            "plug_visual_3d" : validate_plug_visual_3d,
+        }
+
+        self.class_id = class_id
+
+    def header_chunk( self, header_chunk: HeaderChunk ) :
+        self.__header_chunks.append( header_chunk )
+
+    def external_ref( self, path: list[str] | tuple[str], external_ref: ExternalRef ) :
+        current_ref_folder = self.__root_folder
+
+        for path_part in path :
+            if path_part not in current_ref_folder.subfolders :
+                current_ref_folder.subfolders[ path_part ] = GbxArchive.FolderRef()
+
+            current_ref_folder = current_ref_folder.subfolders[ path_part ]
+
+        self.__instances += 1
+
+        self.__external_refs.append(
+            ( external_ref, current_ref_folder, self.__instances )
+        )
+
+        self.nat32( self.__instances )
+
     def mw_ref( self, function, *function_args, **function_kwargs ) :
         valid_ref = \
-            not function.__name__ in self.validators \
+            not function.__name__ in self.__validators \
                 or \
-            self.validators[ function.__name__ ]( *function_args, **function_kwargs )
+            self.__validators[ function.__name__ ]( *function_args, **function_kwargs )
 
         if not valid_ref :
             self.nat32( 0xFFFFFFFF )
@@ -113,93 +172,67 @@ class BlenderGbx :
                 None,
             )
 
-        self.instances += 1
-        self.nat32( self.instances )
+        self.__instances += 1
+        self.nat32( self.__instances )
 
         return (
             valid_ref,
             function( self, *function_args, **function_kwargs ),
         )
 
-    def attach_body( self, new_body : BytesIO = BytesIO() ) -> BytesIO :
-        detached_body = self.body
-        self.body = new_body
-
-        return detached_body
-
-    def __save_folder_recursive__( self, header : BytesIO, folder_name : str, folder_data : dict ) :
-        child_folders = folder_data[ "child_folders" ]
-
-        string( header, folder_name )
-        nat32( header, len( child_folders ) )
-
-        for child_folder_name, child_folder in child_folders.items() :
-            self.save_folder_recursive( header, child_folder_name, child_folder )
-
-    def do_save( self, filepath : str ) :
+    def do_save( self, filepath: str ) :
         header = BytesIO()
 
         text( header, "GBX" )
         nat16( header, 6 )
         text( header, "BUCR" )
         nat32( header, self.class_id )
-        nat32( header, 0x00000000 )
-        nat32( header, self.instances + 1 )
-        nat32( header, len( self.external_refs ) )
 
-        if len( self.external_refs ) > 0 :
+        header_chunk_count = len( self.__header_chunks )
+
+        if header_chunk_count :
+            header_chunk_entries = BytesIO()
+            header_chunk_buffers = BytesIO()
+
+            header_chunks_size = 4
+            nat32( header_chunk_entries, header_chunk_count )
+
+            for header_chunk in self.__header_chunks:
+                header_chunk_data = header_chunk.buffer.getvalue()
+                header_chunk_size = len( header_chunk_data )
+
+                if header_chunk.is_heavy :
+                    header_chunk_size |= 0x80000000
+
+                nat32( header_chunk_entries, header_chunk.header_chunk_id )
+                nat32( header_chunk_entries, header_chunk_size )
+                data( header_chunk_buffers, header_chunk_data )
+
+                header_chunks_size += 8 + header_chunk_size
+
+            nat32( header, header_chunks_size )
+            data( header, header_chunk_entries )
+            data( header, header_chunk_buffers )
+        else :
+            nat32( header, 0 )
+
+        nat32( header, self.__instances + 1 )
+        nat32( header, len( self.__external_refs ) )
+
+        if len( self.__external_refs ) :
             # GBX files loaded from user directory have game data directory as root
             # and due to that fact, we don't need to set ancestor level
             nat32( header, 0 )
 
-            total_folders_nb = 0
+            self.__root_folder.archive( header, None )
 
-            root_folder = {
-                "folder_idx" : 0,
-                "child_folders" : {},
-            }
+            ref_folders_flat: list[GbxArchive.FolderRef] = []
+            self.__root_folder.to_list( ref_folders_flat )
 
-            external_instances = []
+            for external_ref, ref_folder, instance_index in self.__external_refs :
+                external_ref.archive( header, instance_index, ref_folders_flat.index( ref_folder ) )
 
-            for external_ref in self.external_refs :
-                parent_folder = root_folder
-
-                for folder in external_ref[ "path" ] :
-                    if folder not in parent_folder[ "child_folders" ] :
-                        total_folders_nb += 1
-
-                        parent_folder[ "child_folders" ][ folder ] = {
-                            "folder_idx" : total_folders_nb,
-                            "child_folders" : {},
-                        }
-                    
-                    parent_folder = parent_folder[ "child_folders" ][ folder ]
-
-                external_instances.append( {
-                    "folder_idx" : parent_folder[ "folder_idx" ],
-                    "external_ref" : external_ref,
-                } )
-
-            child_folders = root_folder[ "child_folders" ]
-
-            nat32( header, len( child_folders ) )
-
-            for child_folder_name, child_folder in child_folders.items() :
-                self.__save_folder_recursive__( header, child_folder_name, child_folder )
-            
-            for external_instance in external_instances :
-                folder_idx = external_instance[ "folder_idx" ]
-                external_ref = external_instance[ "external_ref" ]
-
-                nat32( header, 1 )
-                string( header, external_ref[ "file_name" ] )
-                
-                nat32( header, external_ref[ "instance_idx" ] )
-                nat32( header, int( external_ref[ "use_fid" ] ) )
-
-                nat32( header, folder_idx )
-
-        body = self.body.getvalue()
+        body = self.buffer.getvalue()
         nat32( header, len( body ) )
         body = lzo.compress( body, 9, False )
         nat32( header, len( body ) )

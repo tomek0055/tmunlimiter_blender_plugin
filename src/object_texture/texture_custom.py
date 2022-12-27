@@ -78,13 +78,13 @@ class TMUnlimiterObjectTextureCustom( bpy.types.PropertyGroup ) :
             if texture_filepath in custom_texture_refs :
                 textures.append( custom_texture_refs[ texture_filepath ][ 0 ] )
             else :
-                gbx.__instances += 1
+                texture_instance_index = gbx.add_instance( write = False )
 
                 custom_texture_refs[ texture_filepath ] = (
-                    gbx.__instances,
+                    texture_instance_index,
                     texture_filepath
                 )
 
-                textures.append( gbx.__instances )
+                textures.append( texture_instance_index )
 
         return textures

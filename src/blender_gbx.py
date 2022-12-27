@@ -138,6 +138,14 @@ class GbxArchive( GbxContainer ) :
 
         self.class_id = class_id
 
+    def add_instance( self, write = True ) -> int :
+        self.__instances += 1
+
+        if write :
+            self.nat32( self.__instances )
+
+        return self.__instances
+
     def header_chunk( self, header_chunk: HeaderChunk ) :
         self.__header_chunks.append( header_chunk )
 
@@ -150,13 +158,9 @@ class GbxArchive( GbxContainer ) :
 
             current_ref_folder = current_ref_folder.subfolders[ path_part ]
 
-        self.__instances += 1
-
         self.__external_refs.append(
-            ( external_ref, current_ref_folder, self.__instances )
+            ( external_ref, current_ref_folder, self.add_instance() )
         )
-
-        self.nat32( self.__instances )
 
     def mw_ref( self, function, *function_args, **function_kwargs ) :
         valid_ref = \
@@ -172,8 +176,7 @@ class GbxArchive( GbxContainer ) :
                 None,
             )
 
-        self.__instances += 1
-        self.nat32( self.__instances )
+        self.add_instance()
 
         return (
             valid_ref,

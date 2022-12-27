@@ -51,7 +51,7 @@ class ExportBlockGbx( bpy.types.Operator, ExportHelper ):
     def poll( self, context: bpy.context ) :
         return context.mode == "OBJECT"
 
-    def invoke( self, context: bpy.context ) :
+    def invoke( self, context: bpy.context, _ ) :
         if not self.filepath :
             self.filepath = "Model.Block.Gbx"
 

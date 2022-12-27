@@ -1,329 +1,273 @@
-MATERIAL_FILENAMES = [
-    "StadiumPlatform.Material.Gbx",
-    "StadiumFabricAuvent2.Material.Gbx",
-    "StadiumCircuit.Material.Gbx",
-    "StadiumDirt.Material.Gbx",
-    "StadiumGrass9m.Material.Gbx",
-    "StadiumWater.Material.Gbx",
-    "StadiumPlatformFloor.Material.Gbx",
-    "StadiumFabricBorderRubber.Material.Gbx",
-    "StadiumRoadGrid.Material.Gbx",
-    "StadiumRoad.Material.Gbx",
-    "StadiumRoadDetails.Material.Gbx",
-    "StadiumControlInterior.Material.Gbx",
-    "StadiumFabricStands2.Material.Gbx",
-    "StadiumRoadCircuitBorder.Material.Gbx",
-    "StadiumCircuitLogo.Material.Gbx",
-    "StadiumCircuitScreen.Material.Gbx",
-    "StadiumRaceSignsRubber.Material.Gbx",
-    "StadiumRoadTurbo.Material.Gbx",
-    "StadiumFan.Material.Gbx",
-    "StadiumRoadTurboRoulette.Material.Gbx",
-    "StadiumRoadFreeWheeling.Material.Gbx",
-    "StadiumDirtRoad.Material.Gbx",
-    "StadiumDirtToRoad.Material.Gbx",
-    "StadiumControlLogos.Material.Gbx",
-    "StadiumPillar.Material.Gbx",
-    "StadiumPlatformSoundSystem.Material.Gbx",
-    "StadiumPlatformAuventAlpha.Material.Gbx",
-    "StadiumStructureAlpha.Material.Gbx",
-    "StadiumFabricStructure.Material.Gbx",
-    "StadiumFabric.Material.Gbx",
-    "StadiumInflatable2.Material.Gbx",
-    "StadiumPlatformPillar.Material.Gbx",
-    "StadiumSculpt.Material.Gbx",
-    "StadiumSculpt2.Material.Gbx",
-    "StadiumStartLogo.Material.Gbx",
-    "StadiumTurboSpots.Material.Gbx",
-    "StadiumRoadRace.Material.Gbx",
-    "StadiumPubNvidiaWorldcup.Material.Gbx",
-    "StadiumInflatableCastle.Material.Gbx",
-    "StadiumInflatableCactus.Material.Gbx",
-    "StadiumInflatableSnowTree.Material.Gbx",
-    "StadiumInflatablePalmTree.Material.Gbx",
-    "StadiumAirship.Material.Gbx",
-    "StadiumControlGlass.Material.Gbx",
-    "StadiumInflatable.Material.Gbx",
-    "StadiumStructureGeneric.Material.Gbx",
-    "StadiumControlStands.Material.Gbx",
-    "StadiumDirtGrid.Material.Gbx",
-    "StadiumFabricPool.Material.Gbx",
-    "StadiumWarpParvis.Material.Gbx",
-    "StadiumWarpRoute.Material.Gbx",
-    "StadiumWarpParking.Material.Gbx",
-    "StadiumWarpGlass.Material.Gbx",
-]
-
 MATERIALS_STADIUM = [
-    (
-        "0",
-        "StadiumPlatform",
-        """
-        This material uses:
-            - StadiumPlatformD.dds (1st UV layer)
-            - StadiumPlatformS.dds (1st UV layer)
-            - StadiumPlatformN.dds (1st UV layer)
-            - StadiumRoadO2.dds (2nd UV layer)
-        """,
-    ),
-    (
-        "1",
-        "StadiumFabricAuvent2",
-        "StadiumFabricAuvent2",
-    ),
-    (
-        "2",
-        "StadiumCircuit",
-        "StadiumCircuit",
-    ),
-    (
-        "3",
-        "StadiumDirt",
-        "StadiumDirt",
-    ),
-    (
-        "4",
-        "StadiumGrass",
-        "StadiumGrass",
-    ),
-    (
-        "5",
-        "StadiumWater",
-        "StadiumWater",
-    ),
-    (
-        "6",
-        "StadiumPlatformFloor",
-        "StadiumPlatformFloor",
-    ),
-    (
-        "7",
-        "StadiumFabricBorderRubber",
-        "StadiumFabricBorderRubber",
-    ),
-    (
-        "8",
-        "StadiumRoadGrid",
-        "StadiumRoadGrid",
-    ),
-    (
-        "9",
-        "StadiumRoad",
-        "StadiumRoad",
-    ),
-    (
-        "10",
-        "StadiumRoadDetails",
-        "StadiumRoadDetails"
-    ),
-    (
-        "11",
-        "StadiumControlInterior",
-        "StadiumControlInterior"
-    ),
-    (
-        "12",
-        "StadiumFabricStands2",
-        "StadiumFabricStands2"
-    ),
-    (
-        "13",
-        "StadiumRoadCircuitBorder",
-        "StadiumRoadCircuitBorder"
-    ),
-    (
-        "14",
-        "StadiumCircuitLogo",
-        "StadiumCircuitLogo"
-    ),
-    (
-        "15",
-        "StadiumCircuitScreen",
-        "StadiumCircuitScreen"
-    ),
-    (
-        "16",
-        "StadiumRaceSignsRubber",
-        "StadiumRaceSignsRubber"
-    ),
-    (
-        "17",
-        "StadiumRoadTurbo",
-        "StadiumRoadTurbo"
-    ),
-    (
-        "18",
-        "StadiumFan",
-        "StadiumFan"
-    ),
-    (
-        "19",
-        "StadiumRoadTurboRoulette",
-        "StadiumRoadTurboRoulette"
-    ),
-    (
-        "20",
-        "StadiumRoadFreeWheeling",
-        "StadiumRoadFreeWheeling"
-    ),
-    (
-        "21",
-        "StadiumDirtRoad",
-        "StadiumDirtRoad"
-    ),
-    (
-        "22",
-        "StadiumDirtToRoad",
-        "StadiumDirtToRoad"
-    ),
-    (
-        "23",
-        "StadiumControlLogos",
-        "StadiumControlLogos"
-    ),
-    (
-        "24",
-        "StadiumPillar",
-        "StadiumPillar"
-    ),
-    (
-        "25",
-        "StadiumPlatformSoundSystem",
-        "StadiumPlatformSoundSystem"
-    ),
-    (
-        "26",
-        "StadiumPlatformAuventAlpha",
-        "StadiumPlatformAuventAlpha"
-    ),
-    (
-        "27",
-        "StadiumStructureAlpha",
-        "StadiumStructureAlpha"
-    ),
-    (
-        "28",
-        "StadiumFabricStructure",
-        "StadiumFabricStructure"
-    ),
-    (
-        "29",
-        "StadiumFabric",
-        "StadiumFabric"
-    ),
-    (
-        "30",
-        "StadiumInflatable2",
-        "StadiumInflatable2"
-    ),
-    (
-        "31",
-        "StadiumPlatformPillar",
-        "StadiumPlatformPillar"
-    ),
-    (
-        "32",
-        "StadiumSculpt",
-        "StadiumSculpt"
-    ),
-    (
-        "33",
-        "StadiumSculpt2",
-        "StadiumSculpt2"
-    ),
-    (
-        "34",
-        "StadiumStartLogo",
-        "StadiumStartLogo"
-    ),
-    (
-        "35",
-        "StadiumTurboSpots",
-        "StadiumTurboSpots"
-    ),
-    (
-        "36",
-        "StadiumRoadRace",
-        "StadiumRoadRace"
-    ),
-    (
-        "37",
-        "StadiumPubNvidiaWorldcup",
-        "StadiumPubNvidiaWorldcup"
-    ),
-    (
-        "38",
-        "StadiumInflatableCastle",
-        "StadiumInflatableCastle"
-    ),
-    (
-        "39",
-        "StadiumInflatableCactus",
-        "StadiumInflatableCactus"
-    ),
-    (
-        "40",
-        "StadiumInflatableSnowTree",
-        "StadiumInflatableSnowTree"
-    ),
-    (
-        "41",
-        "StadiumInflatablePalmTree",
-        "StadiumInflatablePalmTree"
-    ),
-    (
-        "42",
-        "StadiumAirship",
-        "StadiumAirship"
-    ),
-    (
-        "43",
-        "StadiumControlGlass",
-        "StadiumControlGlass"
-    ),
-    (
-        "44",
-        "StadiumInflatable",
-        "StadiumInflatable"
-    ),
-    (
-        "45",
-        "StadiumStructureGeneric",
-        "StadiumStructureGeneric"
-    ),
-    (
-        "46",
-        "StadiumControlStands",
-        "StadiumControlStands"
-    ),
-    (
-        "47",
-        "StadiumDirtGrid",
-        "StadiumDirtGrid"
-    ),
-    (
-        "48",
-        "StadiumFabricPool",
-        "StadiumFabricPool"
-    ),
-    (
-        "49",
-        "StadiumWarpParvis",
-        "StadiumWarpParvis"
-    ),
-    (
-        "50",
-        "StadiumWarpRoute",
-        "StadiumWarpRoute"
-    ),
-    (
-        "51",
-        "StadiumWarpParking",
-        "StadiumWarpParking"
-    ),
-    (
-        "52",
-        "StadiumWarpGlass",
-        "StadiumWarpGlass"
-    ),
+(
+"StadiumPlatform.Material.Gbx",
+"StadiumPlatform",
+"""
+This material uses:
+    - StadiumPlatformD.dds (1st UV layer)
+    - StadiumPlatformS.dds (1st UV layer)
+    - StadiumPlatformN.dds (1st UV layer)
+    - StadiumRoadO2.dds (2nd UV layer)
+""",
+),
+(
+"StadiumFabricAuvent2.Material.Gbx",
+"StadiumFabricAuvent2",
+"StadiumFabricAuvent2",
+),
+(
+"StadiumCircuit.Material.Gbx",
+"StadiumCircuit",
+"StadiumCircuit",
+),
+(
+"StadiumDirt.Material.Gbx",
+"StadiumDirt",
+"StadiumDirt",
+),
+(
+"StadiumGrass9m.Material.Gbx",
+"StadiumGrass",
+"StadiumGrass",
+),
+(
+"StadiumWater.Material.Gbx",
+"StadiumWater",
+"StadiumWater",
+),
+(
+"StadiumPlatformFloor.Material.Gbx",
+"StadiumPlatformFloor",
+"StadiumPlatformFloor",
+),
+(
+"StadiumFabricBorderRubber.Material.Gbx",
+"StadiumFabricBorderRubber",
+"StadiumFabricBorderRubber",
+),
+(
+"StadiumRoadGrid.Material.Gbx",
+"StadiumRoadGrid",
+"StadiumRoadGrid",
+),
+(
+"StadiumRoad.Material.Gbx",
+"StadiumRoad",
+"StadiumRoad",
+),
+(
+"StadiumRoadDetails.Material.Gbx",
+"StadiumRoadDetails",
+"StadiumRoadDetails"
+),
+(
+"StadiumControlInterior.Material.Gbx",
+"StadiumControlInterior",
+"StadiumControlInterior"
+),
+(
+"StadiumFabricStands2.Material.Gbx",
+"StadiumFabricStands2",
+"StadiumFabricStands2"
+),
+(
+"StadiumRoadCircuitBorder.Material.Gbx",
+"StadiumRoadCircuitBorder",
+"StadiumRoadCircuitBorder"
+),
+(
+"StadiumCircuitLogo.Material.Gbx",
+"StadiumCircuitLogo",
+"StadiumCircuitLogo"
+),
+(
+"StadiumCircuitScreen.Material.Gbx",
+"StadiumCircuitScreen",
+"StadiumCircuitScreen"
+),
+(
+"StadiumRaceSignsRubber.Material.Gbx",
+"StadiumRaceSignsRubber",
+"StadiumRaceSignsRubber"
+),
+(
+"StadiumRoadTurbo.Material.Gbx",
+"StadiumRoadTurbo",
+"StadiumRoadTurbo"
+),
+(
+"StadiumFan.Material.Gbx",
+"StadiumFan",
+"StadiumFan"
+),
+(
+"StadiumRoadTurboRoulette.Material.Gbx",
+"StadiumRoadTurboRoulette",
+"StadiumRoadTurboRoulette"
+),
+(
+"StadiumRoadFreeWheeling.Material.Gbx",
+"StadiumRoadFreeWheeling",
+"StadiumRoadFreeWheeling"
+),
+(
+"StadiumDirtRoad.Material.Gbx",
+"StadiumDirtRoad",
+"StadiumDirtRoad"
+),
+(
+"StadiumDirtToRoad.Material.Gbx",
+"StadiumDirtToRoad",
+"StadiumDirtToRoad"
+),
+(
+"StadiumControlLogos.Material.Gbx",
+"StadiumControlLogos",
+"StadiumControlLogos"
+),
+(
+"StadiumPillar.Material.Gbx",
+"StadiumPillar",
+"StadiumPillar"
+),
+(
+"StadiumPlatformSoundSystem.Material.Gbx",
+"StadiumPlatformSoundSystem",
+"StadiumPlatformSoundSystem"
+),
+(
+"StadiumPlatformAuventAlpha.Material.Gbx",
+"StadiumPlatformAuventAlpha",
+"StadiumPlatformAuventAlpha"
+),
+(
+"StadiumStructureAlpha.Material.Gbx",
+"StadiumStructureAlpha",
+"StadiumStructureAlpha"
+),
+(
+"StadiumFabricStructure.Material.Gbx",
+"StadiumFabricStructure",
+"StadiumFabricStructure"
+),
+(
+"StadiumFabric.Material.Gbx",
+"StadiumFabric",
+"StadiumFabric"
+),
+(
+"StadiumInflatable2.Material.Gbx",
+"StadiumInflatable2",
+"StadiumInflatable2"
+),
+(
+"StadiumPlatformPillar.Material.Gbx",
+"StadiumPlatformPillar",
+"StadiumPlatformPillar"
+),
+(
+"StadiumSculpt.Material.Gbx",
+"StadiumSculpt",
+"StadiumSculpt"
+),
+(
+"StadiumSculpt2.Material.Gbx",
+"StadiumSculpt2",
+"StadiumSculpt2"
+),
+(
+"StadiumStartLogo.Material.Gbx",
+"StadiumStartLogo",
+"StadiumStartLogo"
+),
+(
+"StadiumTurboSpots.Material.Gbx",
+"StadiumTurboSpots",
+"StadiumTurboSpots"
+),
+(
+"StadiumRoadRace.Material.Gbx",
+"StadiumRoadRace",
+"StadiumRoadRace"
+),
+(
+"StadiumPubNvidiaWorldcup.Material.Gbx",
+"StadiumPubNvidiaWorldcup",
+"StadiumPubNvidiaWorldcup"
+),
+(
+"StadiumInflatableCastle.Material.Gbx",
+"StadiumInflatableCastle",
+"StadiumInflatableCastle"
+),
+(
+"StadiumInflatableCactus.Material.Gbx",
+"StadiumInflatableCactus",
+"StadiumInflatableCactus"
+),
+(
+"StadiumInflatableSnowTree.Material.Gbx",
+"StadiumInflatableSnowTree",
+"StadiumInflatableSnowTree"
+),
+(
+"StadiumInflatablePalmTree.Material.Gbx",
+"StadiumInflatablePalmTree",
+"StadiumInflatablePalmTree"
+),
+(
+"StadiumAirship.Material.Gbx",
+"StadiumAirship",
+"StadiumAirship"
+),
+(
+"StadiumControlGlass.Material.Gbx",
+"StadiumControlGlass",
+"StadiumControlGlass"
+),
+(
+"StadiumInflatable.Material.Gbx",
+"StadiumInflatable",
+"StadiumInflatable"
+),
+(
+"StadiumStructureGeneric.Material.Gbx",
+"StadiumStructureGeneric",
+"StadiumStructureGeneric"
+),
+(
+"StadiumControlStands.Material.Gbx",
+"StadiumControlStands",
+"StadiumControlStands"
+),
+(
+"StadiumDirtGrid.Material.Gbx",
+"StadiumDirtGrid",
+"StadiumDirtGrid"
+),
+(
+"StadiumFabricPool.Material.Gbx",
+"StadiumFabricPool",
+"StadiumFabricPool"
+),
+(
+"StadiumWarpParvis.Material.Gbx",
+"StadiumWarpParvis",
+"StadiumWarpParvis"
+),
+(
+"StadiumWarpRoute.Material.Gbx",
+"StadiumWarpRoute",
+"StadiumWarpRoute"
+),
+(
+"StadiumWarpParking.Material.Gbx",
+"StadiumWarpParking",
+"StadiumWarpParking"
+),
+(
+"StadiumWarpGlass.Material.Gbx",
+"StadiumWarpGlass",
+"StadiumWarpGlass"
+),
 ]

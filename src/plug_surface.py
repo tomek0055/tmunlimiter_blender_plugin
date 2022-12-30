@@ -54,7 +54,7 @@ def plug_surface_geom_mesh( gbx: GbxArchive, object: bpy.types.Object ) -> list[
 
         gbx.real( vertex.co.x )
         gbx.real( vertex.co.z )
-        gbx.real( -vertex.co.y )
+        gbx.real( vertex.co.y )
 
         vertex_translation_table[ vertex_index ] = len( vertex_translation_table )
 
@@ -64,12 +64,12 @@ def plug_surface_geom_mesh( gbx: GbxArchive, object: bpy.types.Object ) -> list[
     for face in faces :
         gbx.real( face.normal.x )
         gbx.real( face.normal.z )
-        gbx.real( -face.normal.y )
+        gbx.real( face.normal.y )
         gbx.real( 0 )
         
         loops: list[bmesh.types.BMLoop] = face.loops
 
-        for loop in loops :
+        for loop in reversed( loops ) :
             gbx.nat32( vertex_translation_table[ loop.vert.index ] )
         
         gbx.nat16( material_translation_table[ face.material_index ][ 0 ] )

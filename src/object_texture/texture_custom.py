@@ -1,4 +1,5 @@
 from ..blender_gbx import GbxArchive
+from pathlib import PureWindowsPath
 import bpy
 
 class TMUnlimiterObjectTextureCustom( bpy.types.PropertyGroup ) :
@@ -75,6 +76,13 @@ class TMUnlimiterObjectTextureCustom( bpy.types.PropertyGroup ) :
             raise Exception( "Unknown texture usage \"{0}\"".format( self.usage ) )
 
         for texture_filepath in texture_filepaths :
+            windows_path = PureWindowsPath( texture_filepath )
+
+            if not windows_path.name :
+                raise Exception( "File path does not have any file name" )
+
+            texture_filepath = str( windows_path )
+
             if texture_filepath in custom_texture_refs :
                 textures.append( custom_texture_refs[ texture_filepath ][ 0 ] )
             else :

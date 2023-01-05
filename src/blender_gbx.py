@@ -1,12 +1,7 @@
+from typing import Any, Callable
 from io import BytesIO
 import struct
 import lzo
-
-from .validators import (
-    validate_plug_surface,
-    validate_gx_light_point,
-    validate_plug_visual_3d,
-)
 
 def nat8( data: BytesIO, value: int ) :
     data.write( value.to_bytes( 1, "little" ) )
@@ -127,20 +122,14 @@ class GbxArchive( GbxContainer ) :
             for subfolder_name in self.subfolders :
                 self.subfolders[ subfolder_name ].archive( buffer, subfolder_name )
 
-    def __init__( self, class_id: int, validators: dict = {}, ancestor_level = 0 ) :
+    def __init__( self, class_id: int, validators: dict[str, Callable[[Any], bool]] = {}, ancestor_level = 0 ) :
         GbxContainer.__init__( self )
 
         self.__instances = 0
+        self.__validators = validators
         self.__root_folder = GbxArchive.FolderRef()
         self.__header_chunks: list[HeaderChunk] = []
         self.__external_refs: list[tuple[ExternalRef, GbxArchive.FolderRef, int]] = []
-
-        self.__validators = {
-            "plug_surface" : validate_plug_surface,
-            "gx_light_point" : validate_gx_light_point,
-            **validators,
-            "plug_visual_3d" : validate_plug_visual_3d,
-        }
 
         self.class_id = class_id
         self.ancestor_level = ancestor_level

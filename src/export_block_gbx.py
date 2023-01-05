@@ -8,8 +8,8 @@ from .props.prop_object_settings import (
     __unregister__ as object_settings_unregister,
 )
 
-from .unlimiter_block_v1 import (
-    unlimiter_block_v1,
+from .unlimiter_block import (
+    unlimiter_block,
     CLASS_ID,
 )
 
@@ -68,7 +68,7 @@ class ExportBlockGbx( bpy.types.Operator, ExportHelper ):
             elif not self.block_author :
                 raise Exception( "Block author is empty" )
 
-            unlimiter_block_v1(
+            unlimiter_block(
                 gbx,
                 self.block_id,
                 self.block_author,

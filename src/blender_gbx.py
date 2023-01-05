@@ -78,7 +78,7 @@ class GbxContainer :
             self.nat32( 0x40000000 )
             self.string( mw_id )
 
-    def attach_buffer( self, new_buffer: BytesIO = BytesIO() ) -> BytesIO :
+    def attach_buffer( self, new_buffer: BytesIO ) -> BytesIO :
         detached_buffer = self.buffer
         self.buffer = new_buffer
 

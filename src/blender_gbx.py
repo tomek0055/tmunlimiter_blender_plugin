@@ -127,7 +127,7 @@ class GbxArchive( GbxContainer ) :
             for subfolder_name in self.subfolders :
                 self.subfolders[ subfolder_name ].archive( buffer, subfolder_name )
 
-    def __init__( self, class_id: int, validators: dict = {} ) :
+    def __init__( self, class_id: int, validators: dict = {}, ancestor_level = 0 ) :
         GbxContainer.__init__( self )
 
         self.__instances = 0
@@ -143,6 +143,7 @@ class GbxArchive( GbxContainer ) :
         }
 
         self.class_id = class_id
+        self.ancestor_level = ancestor_level
 
     def add_instance( self, write = True ) -> int :
         self.__instances += 1
@@ -229,9 +230,7 @@ class GbxArchive( GbxContainer ) :
         nat32( header, len( self.__external_refs ) )
 
         if len( self.__external_refs ) :
-            # GBX files loaded from user directory have game data directory as root
-            # and due to that fact, we don't need to set ancestor level
-            nat32( header, 0 )
+            nat32( header, self.ancestor_level )
 
             self.__root_folder.archive( header, None )
 

@@ -17,6 +17,9 @@ def nat16( data: BytesIO, value: int ) :
 def nat32( data: BytesIO, value: int ) :
     data.write( value.to_bytes( 4, "little" ) )
 
+def nat64( data: BytesIO, value: int ) :
+    data.write( value.to_bytes( 8, "little" ) )
+
 def real( data: BytesIO, value: float ) :
     data.write( struct.pack( "f", value ) )
 
@@ -48,6 +51,9 @@ class GbxContainer :
 
     def nat32( self, value: int ) :
         nat32( self.buffer, value )
+
+    def nat64( self, value: int ) :
+        nat64( self.buffer, value )
 
     def real( self, value: float ) :
         real( self.buffer, value )

@@ -2,7 +2,7 @@ bl_info = {
     "name" : "TrackMania GameBox format exporter",
     "author": "Tomek0055",
     "version" : (1, 0, 0),
-    "blender" : (3, 1, 2),
+    "blender" : (3, 4, 0),
     "doc_url" : "https://github.com/tomek0055/io_scene_gbx",
     "support" : "COMMUNITY",
     "category" : "Import-Export",

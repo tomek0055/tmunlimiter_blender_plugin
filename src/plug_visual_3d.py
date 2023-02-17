@@ -81,10 +81,10 @@ def plug_visual_3d( gbx: GbxArchive, object: bpy.types.Object ) :
     for vert in mesh.verts :
         gbx.real( vert.co.x )
         gbx.real( vert.co.z )
-        gbx.real( vert.co.y )
+        gbx.real( -vert.co.y )
         gbx.real( vert.normal.x )
         gbx.real( vert.normal.z )
-        gbx.real( vert.normal.y )
+        gbx.real( -vert.normal.y )
 
         gbx.real( object.color[ 0 ] )
         gbx.real( object.color[ 1 ] )
@@ -98,8 +98,6 @@ def plug_visual_3d( gbx: GbxArchive, object: bpy.types.Object ) :
     gbx.nat32( 0x0906A001 )
     gbx.nat32( 0x00000001 )
 # 09-057-000 -- Start
-    loops.reverse()
-
     gbx.nat32( 0x09057000 )
     gbx.nat32( 0x00000002 )
     gbx.nat32( len( loops ) )

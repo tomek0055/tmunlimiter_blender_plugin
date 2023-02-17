@@ -1,4 +1,12 @@
-from ..blender_gbx import GbxArchive
+from .texture_props import (
+    TMUnlimiterTextureProps,
+    TMUnlimiterDiffuseProps,
+    TMUnlimiterSpecularProps,
+    TMUnlimiterNormalProps,
+    TMUnlimiterLightingProps,
+    TMUnlimiterOcclusionProps,
+)
+from ..blender_gbx import GbxArchive, ExternalRef
 from pathlib import PureWindowsPath
 import bpy
 
@@ -7,92 +15,144 @@ class TMUnlimiterObjectTextureCustom( bpy.types.PropertyGroup ) :
     usage: bpy.props.EnumProperty(
         name = "Texture usage",
         items = [
-            ( "0", "Use only diffuse", "Use only diffuse" ),
-            ( "1", "Use diffuse, specular and normal", "Use diffuse, specular and normal" ),
+            ( "0", "Use diffuse", "Use diffuse" ),
+            ( "1", "Use diffuse, specular", "Use diffuse and specular" ),
+            ( "2", "Use diffuse, specular and normal", "Use diffuse, specular and normal" ),
+            ( "3", "Use diffuse, specular, normal, lighting and occlusion", "Use diffuse, specular, normal, lighting and occlusion" ),
         ],
         default = "0",
     )
 
-    diffuse_filepath: bpy.props.StringProperty(
-        name = "Diffuse texture file path",
-        description = "Diffuse texture file path relative to the \"Texures\" directory",
-    )
-
-    specular_filepath: bpy.props.StringProperty(
-        name = "Specular texture file path",
-        description = "Specular texture file path relative to the \"Textures\" directory",
-    )
-
-    normal_filepath: bpy.props.StringProperty(
-        name = "Normal texture file path",
-        description = "Normal texture file path relative to the \"Textures\" directory",
-    )
-
-    is_translucent: bpy.props.BoolProperty(
-        name = "Is translucent",
-    )
-
     is_double_sided: bpy.props.BoolProperty(
         name = "Is double sided",
+        default = False,
     )
 
-    texture_filter: bpy.props.EnumProperty(
-        name = "Texture filtering",
-        items = [
-            ( "Point", "Point", "Point" ),
-            ( "Bilinear", "Bilinear", "Bilinear" ),
-            ( "Trilinear", "Trilinear", "Trilinear" ),
-            ( "Anisotropic", "Anisotropic", "Anisotropic" ),
-        ],
-        default = "Point",
+    diffuse: bpy.props.PointerProperty(
+        name = "Diffuse texture",
+        type = TMUnlimiterDiffuseProps
     )
 
-    texture_address: bpy.props.EnumProperty(
-        name = "Texture addressing",
-        items = [
-            ( "Wrap", "Wrap", "Wrap" ),
-            ( "Mirror", "Mirror", "Mirror" ),
-            ( "Clamp", "Clamp", "Clamp" ),
-            ( "BorderSM3", "BorderSM3", "BorderSM3" ),
-        ],
-        default = "Clamp",
+    specular: bpy.props.PointerProperty(
+        name = "Specular texture",
+        type = TMUnlimiterSpecularProps
     )
 
-    def get_texture_refs( self, gbx: GbxArchive ) -> list[int] :
-        custom_texture_refs: dict[str, tuple[int, str]] = gbx.context[ "custom_texture_refs" ]
-        textures: list[int] = []
+    normal: bpy.props.PointerProperty(
+        name = "Normal texture",
+        type = TMUnlimiterNormalProps
+    )
 
-        if self.usage == "0" :
-            texture_filepaths: list[str] = [
-                self.diffuse_filepath,
-            ]
-        elif self.usage == "1" :
-            texture_filepaths: list[str] = [
-                self.diffuse_filepath,
-                self.specular_filepath,
-                self.normal_filepath,
-            ]
-        else :
-            raise Exception( "Unknown texture usage \"{0}\"".format( self.usage ) )
+    lighting: bpy.props.PointerProperty(
+        name = "Lighting texture",
+        type = TMUnlimiterLightingProps
+    )
 
-        for texture_filepath in texture_filepaths :
-            windows_path = PureWindowsPath( texture_filepath )
+    occlusion: bpy.props.PointerProperty(
+        name = "Occlusion texture",
+        type = TMUnlimiterOcclusionProps
+    )
 
-            if not windows_path.name :
-                raise Exception( "File path does not have any file name" )
+    def archive( self, gbx: GbxArchive ) :
+        def get_replacement_texture_instance_index( replacement_texture_type: int ) -> int :
+            replacement_textures = gbx.context[ "replacement_textures" ]
 
-            texture_filepath = str( windows_path )
+            if replacement_texture_type not in replacement_textures :
+                replacement_textures[ replacement_texture_type ] = gbx.add_instance( write = False )
 
-            if texture_filepath in custom_texture_refs :
-                textures.append( custom_texture_refs[ texture_filepath ][ 0 ] )
-            else :
-                texture_instance_index = gbx.add_instance( write = False )
+            return replacement_textures[ replacement_texture_type ]
 
-                custom_texture_refs[ texture_filepath ] = (
-                    texture_instance_index,
-                    texture_filepath
+        def get_or_create_texture_instance_index( texture: TMUnlimiterTextureProps ) -> int :
+            texture_filepath = PureWindowsPath( texture.filepath )
+
+            if not texture_filepath.name :
+                raise Exception(
+                    "Provided file path \"{0}\" for {1} texture does not have any file name".format( texture.filepath, texture.get_texture_type().lower() )
                 )
 
-                textures.append( texture_instance_index )
+            custom_texture_references = gbx.context[ "custom_texture_references" ]
 
-        return textures
+            custom_texture_tuple = (
+                str( texture_filepath ), texture.filtering, texture.addressing
+            )
+
+            if custom_texture_tuple not in custom_texture_references :
+                custom_texture_references[ custom_texture_tuple ] = gbx.add_instance( write = False )
+
+            return custom_texture_references[ custom_texture_tuple ]
+
+        def plug_material_custom( gbx: GbxArchive ) :
+            gbx.nat32( 0x0903a000 )
+            gbx.nat32( 0x0903a006 )
+
+            if self.usage == "0" :
+                textures = [
+                    ( "Diffuse", get_or_create_texture_instance_index( self.diffuse ) ),
+                    ( "Specular", get_replacement_texture_instance_index( 2 ) ),
+                    ( "Normal", get_replacement_texture_instance_index( 3 ) ),
+                    ( "Occlusion", get_replacement_texture_instance_index( 0 ) ),
+                    ( "Lighting", get_replacement_texture_instance_index( 1 ) ),
+                ]
+            elif self.usage == "1" :
+                textures = [
+                    ( "Diffuse", get_or_create_texture_instance_index( self.diffuse ) ),
+                    ( "Specular", get_or_create_texture_instance_index( self.specular ) ),
+                    ( "Normal", get_replacement_texture_instance_index( 3 ) ),
+                    ( "Occlusion", get_replacement_texture_instance_index( 0 ) ),
+                    ( "Lighting", get_replacement_texture_instance_index( 1 ) ),
+                ]
+            elif self.usage == "2" :
+                textures = [
+                    ( "Diffuse", get_or_create_texture_instance_index( self.diffuse ) ),
+                    ( "Specular", get_or_create_texture_instance_index( self.specular ) ),
+                    ( "Normal", get_or_create_texture_instance_index( self.normal ) ),
+                    ( "Occlusion", get_replacement_texture_instance_index( 0 ) ),
+                    ( "Lighting", get_replacement_texture_instance_index( 1 ) ),
+                ]
+            elif self.usage == "3" :
+                textures = [
+                    ( "Diffuse", get_or_create_texture_instance_index( self.diffuse ) ),
+                    ( "Specular", get_or_create_texture_instance_index( self.specular ) ),
+                    ( "Normal", get_or_create_texture_instance_index( self.normal ) ),
+                    ( "Occlusion", get_or_create_texture_instance_index( self.occlusion ) ),
+                    ( "Lighting", get_or_create_texture_instance_index( self.lighting ) ),
+                ]
+            else :
+                raise Exception( "Unknown texture usage \"{0}\"".format( self.usage ) )
+
+            gbx.nat32( len( textures ) )
+            for texture_type, texture_instance_index in textures :
+                gbx.mw_id( texture_type )
+                gbx.nat32( 0 )
+                gbx.nat32( texture_instance_index )
+
+            gbx.nat32( 0x0903a00c )
+            gbx.nat32( 3 )
+            gbx.mw_id( "PreLightGen" )
+            gbx.nat32( 0 )
+            gbx.mw_id( "Normal" )
+            gbx.nat32( 0 )
+            gbx.mw_id( "Lighting" )
+            gbx.nat32( 0 )
+
+            gbx.nat32( 0x0903a00d )
+            shader_requirements = 0
+            custom_material_flags = 0
+
+            if self.is_double_sided :
+                shader_requirements = 1024
+                custom_material_flags = 4
+
+            gbx.nat64( custom_material_flags )
+            gbx.nat64( shader_requirements )
+            gbx.nat32( 0xfacade01 )
+
+        def plug_material( gbx: GbxArchive ) :
+            gbx.nat32( 0x09079000 )
+            gbx.nat32( 0x09079007 )
+            gbx.mw_ref( plug_material_custom )
+            gbx.nat32( 0x0907900d )
+            gbx.external_ref( ( "Techno2", "Media", "Material" ), ExternalRef( "TDiff_Spec_Nrm TOcc CSpecSoft.Material.Gbx" ) )
+            gbx.nat32( 0xfacade01 )
+
+        gbx.mw_ref( plug_material )

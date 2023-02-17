@@ -5,7 +5,7 @@ from .game_materials.coast import MATERIALS_COAST
 from .game_materials.rally import MATERIALS_RALLY
 from .game_materials.speed import MATERIALS_SPEED
 from .game_materials.bay import MATERIALS_BAY
-from ..blender_gbx import ExternalRef
+from ..blender_gbx import GbxArchive, ExternalRef
 import bpy
 
 class TMUnlimiterObjectTextureGame( bpy.types.PropertyGroup ) :
@@ -24,7 +24,7 @@ class TMUnlimiterObjectTextureGame( bpy.types.PropertyGroup ) :
         default = "Stadium",
     )
 
-    def get_environment_materials( self, context ) :
+    def get_environment_materials( self, _ ) :
         if self.environment == "Speed" :
             return MATERIALS_SPEED
         elif self.environment == "Rally" :
@@ -42,13 +42,10 @@ class TMUnlimiterObjectTextureGame( bpy.types.PropertyGroup ) :
         else :
             raise "Unknown environment \"{0}\"".format( self.environment )
 
-    def get_material_path( self ) :
-        return (
-            ( self.environment, "Media", "Material" ),
-            ExternalRef( self.game_material )
-        )
-
     game_material: bpy.props.EnumProperty(
         name = "Game material",
         items = get_environment_materials,
     )
+
+    def archive( self, gbx: GbxArchive ) :
+        gbx.external_ref( ( self.environment, "Media", "Material" ), ExternalRef( self.game_material ) )

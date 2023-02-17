@@ -3,11 +3,11 @@ import bpy
 
 class TMUnlimiterMaterialCollisionProps( bpy.types.PropertyGroup ) :
 
-    is_collidable : bpy.props.BoolProperty(
+    is_collidable: bpy.props.BoolProperty(
         name = "Is collidable",
     )
 
-    collision_material : bpy.props.EnumProperty(
+    collision_material: bpy.props.EnumProperty(
         name = "Collision material",
         items = DEFAULT_COLLISION_MATERIALS,
     )
@@ -21,13 +21,13 @@ class TMUnlimiterMaterialCollision( bpy.types.Panel ) :
 
     @classmethod
     def poll( self, context: bpy.context ) :
-        return context.material is not None
+        return context.object.unlimiter_object_settings.can_export_collision and context.material is not None
 
-    def draw( self, context : bpy.context ) :
-        data : TMUnlimiterMaterialCollision = context.material.unlimiter_material_collision
+    def draw( self, context: bpy.context ) :
+        data: TMUnlimiterMaterialCollision = context.material.unlimiter_material_collision
 
         self.layout.prop( data, "is_collidable" )
-        
+
         if data.is_collidable :
             self.layout.prop( data, "collision_material" )
 

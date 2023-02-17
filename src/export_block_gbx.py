@@ -45,6 +45,28 @@ class ExportBlockGbx( bpy.types.Operator, ExportHelper ):
         description = "Vehicle spawn location",
     )
 
+    root_object_kind: bpy.props.EnumProperty(
+        name = "Root object",
+        items = [
+            (
+                "SceneCollection",
+                "Use current scene collection",
+                "Use current scene collection as a root object in the model hierarchy",
+            ),
+            (
+                "SelectedCollection",
+                "Use selected collection",
+                "Use selected collection as a root object in the model hierarchy",
+            ),
+            (
+                "SelectedObject",
+                "Use selected object",
+                "Use selected object as a root object in the model hierarchy",
+            ),
+        ],
+        description = "This option determines what resource could be used as a root object in the model hierarchy",
+    )
+
     check_extension = None
 
     @classmethod
@@ -65,15 +87,30 @@ class ExportBlockGbx( bpy.types.Operator, ExportHelper ):
         try :
             if not self.block_id :
                 raise Exception( "Block ID is empty" )
-            elif not self.block_author :
+
+            if not self.block_author :
                 raise Exception( "Block author is empty" )
+
+            root_object_kind = self.root_object_kind
+
+            if root_object_kind == "SceneCollection" :
+                root_object = context.scene.collection
+            elif root_object_kind == "SelectedCollection" :
+                root_object = context.collection
+            elif root_object_kind == "SelectedObject" :
+                root_object = context.object
+
+                if root_object is None :
+                    raise Exception( "No object is selected" )
+            else :
+                raise Exception( "Unknown root object kind \"{0}\"".format( root_object_kind ) )
 
             unlimiter_block(
                 gbx,
                 self.block_id,
                 self.block_author,
                 self.spawn_point,
-                context.collection,
+                root_object,
             )
         except Exception as error :
             self.report( { "ERROR" }, str( error ) )
@@ -83,7 +120,7 @@ class ExportBlockGbx( bpy.types.Operator, ExportHelper ):
         gbx.do_save( self.properties.filepath )
         return { "FINISHED" }
 
-def add_export( self, context ) :
+def add_export( self, _ ) :
     self.layout.operator( ExportBlockGbx.bl_idname )
 
 def __register__() :

@@ -1,5 +1,6 @@
 from .blender_gbx import GbxArchive
 import bmesh
+import math
 import bpy
 
 def plug_visual_3d( gbx: GbxArchive, object: bpy.types.Object ) :
@@ -12,6 +13,8 @@ def plug_visual_3d( gbx: GbxArchive, object: bpy.types.Object ) :
 
     loops = []
     verts_data = {}
+    min_vert_coord = [ +math.inf, +math.inf, +math.inf ]
+    max_vert_coord = [ -math.inf, -math.inf, -math.inf ]
 
     for tri_loops in tris :
         for tri_loop in tri_loops :
@@ -40,6 +43,13 @@ def plug_visual_3d( gbx: GbxArchive, object: bpy.types.Object ) :
             else :
                 vert = verts[ uv_codes.index( uv_code ) ]
 
+            min_vert_coord[ 0 ] = min( min_vert_coord[ 0 ], vert.co.x )
+            min_vert_coord[ 1 ] = min( min_vert_coord[ 1 ], vert.co.y )
+            min_vert_coord[ 2 ] = min( min_vert_coord[ 2 ], vert.co.z )
+            max_vert_coord[ 0 ] = max( max_vert_coord[ 0 ], vert.co.x )
+            max_vert_coord[ 1 ] = max( max_vert_coord[ 1 ], vert.co.y )
+            max_vert_coord[ 2 ] = max( max_vert_coord[ 2 ], vert.co.z )
+
             loops.append( vert.index )
 
     if len( mesh.verts ) > 65535 :
@@ -66,13 +76,18 @@ def plug_visual_3d( gbx: GbxArchive, object: bpy.types.Object ) :
             gbx.real( uv_coord[ 0 ] )
             gbx.real( uv_coord[ 1 ] )
 
-    # XXX: Proper calculation of the GmBoxAligned?
-    gbx.real( object.dimensions.x / 2 )
-    gbx.real( object.dimensions.z / 2 )
-    gbx.real( object.dimensions.y / 2 )
-    gbx.real( object.dimensions.x / 2 )
-    gbx.real( object.dimensions.z / 2 )
-    gbx.real( object.dimensions.y / 2 )
+    half_diag = (
+        ( max_vert_coord[ 0 ] - min_vert_coord[ 0 ] ) / 2,
+        ( max_vert_coord[ 1 ] - min_vert_coord[ 1 ] ) / 2,
+        ( max_vert_coord[ 2 ] - min_vert_coord[ 2 ] ) / 2,
+    )
+
+    gbx.real( min_vert_coord[ 0 ] + half_diag[ 0 ] )
+    gbx.real( min_vert_coord[ 1 ] + half_diag[ 1 ] )
+    gbx.real( min_vert_coord[ 2 ] + half_diag[ 2 ] )
+    gbx.real( half_diag[ 0 ] )
+    gbx.real( half_diag[ 1 ] )
+    gbx.real( half_diag[ 2 ] )
     gbx.nat32( 0x00000000 )
 # 09-006-00E -- End
 # 09-02C-004 -- Start

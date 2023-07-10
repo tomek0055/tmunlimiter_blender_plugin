@@ -84,6 +84,26 @@ class TMUnlimiterObjectSettingsPanel( bpy.types.Panel ) :
             if props.texture_custom.use_occlusion:
                 draw_texture_layout( layout_root.box(), texture_custom.occlusion )
 
+            layout_root.prop( texture_custom, "override_cube_ambient" )
+
+            if props.texture_custom.override_cube_ambient:
+                draw_texture_layout( layout_root.box(), texture_custom.cube_ambient )
+
+            layout_root.prop( texture_custom, "override_reflect_soft" )
+
+            if props.texture_custom.override_reflect_soft:
+                draw_texture_layout( layout_root.box(), texture_custom.reflect_soft )
+
+            layout_root.prop( texture_custom, "override_fresnel" )
+
+            if props.texture_custom.override_fresnel:
+                draw_texture_layout( layout_root.box(), texture_custom.fresnel )
+
+            layout_root.prop( texture_custom, "override_clouds" )
+
+            if props.texture_custom.override_clouds:
+                draw_texture_layout( layout_root.box(), texture_custom.clouds )
+
         elif props.texture_type == "Game" :
             layout = self.layout.box()
 

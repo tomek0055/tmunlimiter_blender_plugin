@@ -56,3 +56,23 @@ class TMUnlimiterOcclusionProps( TMUnlimiterTextureProps ) :
 
     def get_texture_type( self ) -> str :
         return "Occlusion"
+
+class TMUnlimiterCubeAmbientProps( TMUnlimiterTextureProps ) :
+
+    def get_texture_type( self ) -> str :
+        return "Cube Ambient"
+
+class TMUnlimiterReflectSoftProps( TMUnlimiterTextureProps ) :
+
+    def get_texture_type( self ) -> str :
+        return "Reflect Soft"
+
+class TMUnlimiterFresnelProps( TMUnlimiterTextureProps ) :
+
+    def get_texture_type( self ) -> str :
+        return "Fresnel"
+
+class TMUnlimiterCloudsProps( TMUnlimiterTextureProps ) :
+
+    def get_texture_type( self ) -> str :
+        return "Clouds"

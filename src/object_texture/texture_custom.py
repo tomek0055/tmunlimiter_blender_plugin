@@ -5,6 +5,10 @@ from .texture_props import (
     TMUnlimiterNormalProps,
     TMUnlimiterLightingProps,
     TMUnlimiterOcclusionProps,
+    TMUnlimiterCubeAmbientProps,
+    TMUnlimiterReflectSoftProps,
+    TMUnlimiterFresnelProps,
+    TMUnlimiterCloudsProps,
 )
 from ..blender_gbx import GbxArchive, ExternalRef
 from pathlib import PureWindowsPath
@@ -30,6 +34,22 @@ class TMUnlimiterObjectTextureCustom( bpy.types.PropertyGroup ) :
 
     use_occlusion: bpy.props.BoolProperty(
         name = "Use occlusion"
+    )
+
+    override_cube_ambient: bpy.props.BoolProperty(
+        name = "Override cube ambient"
+    )
+
+    override_reflect_soft: bpy.props.BoolProperty(
+        name = "Override reflect soft"
+    )
+
+    override_fresnel: bpy.props.BoolProperty(
+        name = "Override fresnel"
+    )
+
+    override_clouds: bpy.props.BoolProperty(
+        name = "Override clouds"
     )
 
     is_double_sided: bpy.props.BoolProperty(
@@ -60,6 +80,26 @@ class TMUnlimiterObjectTextureCustom( bpy.types.PropertyGroup ) :
     occlusion: bpy.props.PointerProperty(
         name = "Occlusion texture",
         type = TMUnlimiterOcclusionProps
+    )
+
+    cube_ambient: bpy.props.PointerProperty(
+        name = "Cube ambient",
+        type = TMUnlimiterCubeAmbientProps
+    )
+
+    reflect_soft: bpy.props.PointerProperty(
+        name = "Reflect soft",
+        type = TMUnlimiterReflectSoftProps
+    )
+
+    fresnel: bpy.props.PointerProperty(
+        name = "Fresnel",
+        type = TMUnlimiterFresnelProps
+    )
+
+    clouds: bpy.props.PointerProperty(
+        name = "Clouds",
+        type = TMUnlimiterCloudsProps
     )
 
     def archive( self, gbx: GbxArchive ) :
@@ -120,6 +160,18 @@ class TMUnlimiterObjectTextureCustom( bpy.types.PropertyGroup ) :
                 textures.append( ( "Occlusion", get_or_create_texture_instance_index( self.occlusion ) ) )
             else:
                 textures.append( ( "Occlusion", get_replacement_texture_instance_index( 0 ) ) )
+
+            if self.override_cube_ambient:
+                textures.append( ( "CubeAmbient", get_or_create_texture_instance_index( self.cube_ambient ) ) )
+            
+            if self.override_reflect_soft:
+                textures.append( ( "ReflectSoft", get_or_create_texture_instance_index( self.reflect_soft ) ) )
+
+            if self.override_fresnel:
+                textures.append( ( "Fresnel", get_or_create_texture_instance_index( self.fresnel ) ) )
+
+            if self.override_clouds:
+                textures.append( ( "Clouds", get_or_create_texture_instance_index( self.clouds ) ) )
 
             gbx.nat32( len( textures ) )
             for texture_type, texture_instance_index in textures :

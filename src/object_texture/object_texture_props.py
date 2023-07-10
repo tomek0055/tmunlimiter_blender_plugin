@@ -6,6 +6,10 @@ from .texture_props import (
     TMUnlimiterNormalProps,
     TMUnlimiterLightingProps,
     TMUnlimiterOcclusionProps,
+    TMUnlimiterCubeAmbientProps,
+    TMUnlimiterReflectSoftProps,
+    TMUnlimiterFresnelProps,
+    TMUnlimiterCloudsProps,
 )
 from .texture_game import TMUnlimiterObjectTextureGame
 from ..blender_gbx import GbxArchive
@@ -44,6 +48,10 @@ def __register__() :
     bpy.utils.register_class( TMUnlimiterNormalProps )
     bpy.utils.register_class( TMUnlimiterLightingProps )
     bpy.utils.register_class( TMUnlimiterOcclusionProps )
+    bpy.utils.register_class( TMUnlimiterCubeAmbientProps )
+    bpy.utils.register_class( TMUnlimiterReflectSoftProps )
+    bpy.utils.register_class( TMUnlimiterFresnelProps )
+    bpy.utils.register_class( TMUnlimiterCloudsProps )
     bpy.utils.register_class( TMUnlimiterObjectTextureCustom )
     bpy.utils.register_class( TMUnlimiterObjectTextureGame )
     bpy.utils.register_class( TMUnlimiterObjectTextureProps )
@@ -52,6 +60,10 @@ def __unregister__() :
     bpy.utils.unregister_class( TMUnlimiterObjectTextureProps )
     bpy.utils.unregister_class( TMUnlimiterObjectTextureGame )
     bpy.utils.unregister_class( TMUnlimiterObjectTextureCustom )
+    bpy.utils.unregister_class( TMUnlimiterCubeAmbientProps )
+    bpy.utils.unregister_class( TMUnlimiterReflectSoftProps )
+    bpy.utils.unregister_class( TMUnlimiterFresnelProps )
+    bpy.utils.unregister_class( TMUnlimiterCloudsProps )
     bpy.utils.unregister_class( TMUnlimiterOcclusionProps )
     bpy.utils.unregister_class( TMUnlimiterLightingProps )
     bpy.utils.unregister_class( TMUnlimiterNormalProps )

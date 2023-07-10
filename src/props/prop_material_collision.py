@@ -21,7 +21,7 @@ class TMUnlimiterMaterialCollision( bpy.types.Panel ) :
 
     @classmethod
     def poll( self, context: bpy.context ) :
-        return context.object.unlimiter_object_settings.can_export_collision and context.material is not None
+        return context.material is not None
 
     def draw( self, context: bpy.context ) :
         data: TMUnlimiterMaterialCollision = context.material.unlimiter_material_collision

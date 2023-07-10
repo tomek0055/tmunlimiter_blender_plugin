@@ -75,7 +75,7 @@ class ExportBlockGbx( bpy.types.Operator, ExportHelper ):
 
     def invoke( self, context: bpy.context, _ ) :
         if not self.filepath :
-            self.filepath = "Model.Block.Gbx"
+            self.filepath = ".Block.Gbx"
 
         context.window_manager.fileselect_add( self )
         return { "RUNNING_MODAL" }

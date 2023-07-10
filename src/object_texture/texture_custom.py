@@ -11,16 +11,25 @@ from pathlib import PureWindowsPath
 import bpy
 
 class TMUnlimiterObjectTextureCustom( bpy.types.PropertyGroup ) :
+    use_diffuse: bpy.props.BoolProperty(
+        name = "Use diffuse",
+        default = True
+    )
 
-    usage: bpy.props.EnumProperty(
-        name = "Texture usage",
-        items = [
-            ( "0", "Use diffuse", "Use diffuse" ),
-            ( "1", "Use diffuse, specular", "Use diffuse and specular" ),
-            ( "2", "Use diffuse, specular and normal", "Use diffuse, specular and normal" ),
-            ( "3", "Use diffuse, specular, normal, lighting and occlusion", "Use diffuse, specular, normal, lighting and occlusion" ),
-        ],
-        default = "0",
+    use_specular: bpy.props.BoolProperty(
+        name = "Use specular"
+    )
+
+    use_normal: bpy.props.BoolProperty(
+        name = "Use normal"
+    )
+
+    use_lighting: bpy.props.BoolProperty(
+        name = "Use lighting"
+    )
+
+    use_occlusion: bpy.props.BoolProperty(
+        name = "Use occlusion"
     )
 
     is_double_sided: bpy.props.BoolProperty(
@@ -82,43 +91,35 @@ class TMUnlimiterObjectTextureCustom( bpy.types.PropertyGroup ) :
             return custom_texture_references[ custom_texture_tuple ]
 
         def plug_material_custom( gbx: GbxArchive ) :
+            textures = []
+
             gbx.nat32( 0x0903a000 )
             gbx.nat32( 0x0903a006 )
 
-            if self.usage == "0" :
-                textures = [
-                    ( "Diffuse", get_or_create_texture_instance_index( self.diffuse ) ),
-                    ( "Specular", get_replacement_texture_instance_index( 2 ) ),
-                    ( "Normal", get_replacement_texture_instance_index( 3 ) ),
-                    ( "Occlusion", get_replacement_texture_instance_index( 0 ) ),
-                    ( "Lighting", get_replacement_texture_instance_index( 1 ) ),
-                ]
-            elif self.usage == "1" :
-                textures = [
-                    ( "Diffuse", get_or_create_texture_instance_index( self.diffuse ) ),
-                    ( "Specular", get_or_create_texture_instance_index( self.specular ) ),
-                    ( "Normal", get_replacement_texture_instance_index( 3 ) ),
-                    ( "Occlusion", get_replacement_texture_instance_index( 0 ) ),
-                    ( "Lighting", get_replacement_texture_instance_index( 1 ) ),
-                ]
-            elif self.usage == "2" :
-                textures = [
-                    ( "Diffuse", get_or_create_texture_instance_index( self.diffuse ) ),
-                    ( "Specular", get_or_create_texture_instance_index( self.specular ) ),
-                    ( "Normal", get_or_create_texture_instance_index( self.normal ) ),
-                    ( "Occlusion", get_replacement_texture_instance_index( 0 ) ),
-                    ( "Lighting", get_replacement_texture_instance_index( 1 ) ),
-                ]
-            elif self.usage == "3" :
-                textures = [
-                    ( "Diffuse", get_or_create_texture_instance_index( self.diffuse ) ),
-                    ( "Specular", get_or_create_texture_instance_index( self.specular ) ),
-                    ( "Normal", get_or_create_texture_instance_index( self.normal ) ),
-                    ( "Occlusion", get_or_create_texture_instance_index( self.occlusion ) ),
-                    ( "Lighting", get_or_create_texture_instance_index( self.lighting ) ),
-                ]
-            else :
-                raise Exception( "Unknown texture usage \"{0}\"".format( self.usage ) )
+            if self.use_diffuse:
+                textures.append( ( "Diffuse", get_or_create_texture_instance_index( self.diffuse ) ) )
+            else:
+                textures.append( ( "Diffuse", get_replacement_texture_instance_index( 0 ) ) )
+            
+            if self.use_specular:
+                textures.append( ( "Specular", get_or_create_texture_instance_index( self.specular ) ) )
+            else:
+                textures.append( ( "Specular", get_replacement_texture_instance_index( 2 ) ) )
+
+            if self.use_normal:
+                textures.append( ( "Normal", get_or_create_texture_instance_index( self.normal ) ) )
+            else:
+                textures.append( ( "Normal", get_replacement_texture_instance_index( 3 ) ) )
+
+            if self.use_lighting:
+                textures.append( ( "Lighting", get_or_create_texture_instance_index( self.lighting ) ) )
+            else:
+                textures.append( ( "Lighting", get_replacement_texture_instance_index( 1 ) ) )
+
+            if self.use_occlusion:
+                textures.append( ( "Occlusion", get_or_create_texture_instance_index( self.occlusion ) ) )
+            else:
+                textures.append( ( "Occlusion", get_replacement_texture_instance_index( 0 ) ) )
 
             gbx.nat32( len( textures ) )
             for texture_type, texture_instance_index in textures :

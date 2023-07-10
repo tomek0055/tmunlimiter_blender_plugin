@@ -50,6 +50,8 @@ class TMUnlimiterObjectSettingsPanel( bpy.types.Panel ) :
             layout_root.prop( texture_custom, "usage" )
             layout_root.prop( texture_custom, "is_double_sided" )
 
+            layout_root.separator()
+
             def draw_texture_layout( layout, texture: TMUnlimiterTextureProps ) :
                 texture_type = texture.get_texture_type()
 
@@ -57,21 +59,31 @@ class TMUnlimiterObjectSettingsPanel( bpy.types.Panel ) :
                 layout.prop( texture, "filtering", text = "{0} filtering".format( texture_type ) )
                 layout.prop( texture, "addressing", text = "{0} addressing".format( texture_type ) )
 
-            if props.texture_custom.usage == "0" :
+            layout_root.prop( texture_custom, "use_diffuse" )
+
+            if props.texture_custom.use_diffuse:
                 draw_texture_layout( layout_root.box(), texture_custom.diffuse )
-            elif props.texture_custom.usage == "1" :
-                draw_texture_layout( layout_root.box(), texture_custom.diffuse )
+
+            layout_root.prop( texture_custom, "use_specular" )
+
+            if props.texture_custom.use_specular:
                 draw_texture_layout( layout_root.box(), texture_custom.specular )
-            elif props.texture_custom.usage == "2" :
-                draw_texture_layout( layout_root.box(), texture_custom.diffuse )
-                draw_texture_layout( layout_root.box(), texture_custom.specular )
+
+            layout_root.prop( texture_custom, "use_normal" )
+
+            if props.texture_custom.use_normal:
                 draw_texture_layout( layout_root.box(), texture_custom.normal )
-            elif props.texture_custom.usage == "3" :
-                draw_texture_layout( layout_root.box(), texture_custom.diffuse )
-                draw_texture_layout( layout_root.box(), texture_custom.specular )
-                draw_texture_layout( layout_root.box(), texture_custom.normal )
+
+            layout_root.prop( texture_custom, "use_lighting" )
+
+            if props.texture_custom.use_lighting:
                 draw_texture_layout( layout_root.box(), texture_custom.lighting )
+
+            layout_root.prop( texture_custom, "use_occlusion" )
+
+            if props.texture_custom.use_occlusion:
                 draw_texture_layout( layout_root.box(), texture_custom.occlusion )
+
         elif props.texture_type == "Game" :
             layout = self.layout.box()
 

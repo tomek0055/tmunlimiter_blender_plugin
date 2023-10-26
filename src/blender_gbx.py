@@ -164,20 +164,16 @@ class GbxArchive( GbxContainer ) :
                 or \
             self.__validators[ function.__name__ ]( *function_args, **function_kwargs )
 
+        instance_index = -1
+        function_result = None
+
         if not valid_ref :
-            self.nat32( 0xFFFFFFFF )
+            self.nat32( instance_index )
+        else :
+            instance_index = self.add_instance()
+            function_result = function( self, *function_args, **function_kwargs )
 
-            return (
-                valid_ref,
-                None,
-            )
-
-        self.add_instance()
-
-        return (
-            valid_ref,
-            function( self, *function_args, **function_kwargs ),
-        )
+        return ( valid_ref, function_result, instance_index )
 
     def do_save( self, filepath: str ) :
         header = BytesIO()

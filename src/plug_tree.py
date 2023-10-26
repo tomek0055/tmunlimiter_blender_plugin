@@ -25,7 +25,7 @@ def plug_tree_from_collection( gbx: GbxArchive, collection: bpy.types.Collection
         gbx.nat32( len( objects ) )
 
         for object in objects :
-            was_valid_ref, child_flags = gbx.mw_ref( plug_tree_from_object, object )
+            was_valid_ref, child_flags, _ = gbx.mw_ref( plug_tree_from_object, object )
 
             if was_valid_ref :
                 flags |= child_flags & 0xfffffffb
@@ -56,7 +56,7 @@ def plug_tree_from_object( gbx: GbxArchive, object: bpy.types.Object ) :
         gbx.nat32( len( object.children ) )
 
         for children in object.children :
-            was_valid_ref, child_flags = gbx.mw_ref( plug_tree_from_object, children )
+            was_valid_ref, child_flags, _ = gbx.mw_ref( plug_tree_from_object, children )
 
             if was_valid_ref :
                 flags |= child_flags
@@ -80,7 +80,7 @@ def plug_tree_from_object( gbx: GbxArchive, object: bpy.types.Object ) :
         gbx.nat32( 0x0904f014 )
 
         if object_settings.can_export_geometry :
-            has_visual, _ = gbx.mw_ref( plug_visual_3d, object )
+            has_visual, _, _ = gbx.mw_ref( plug_visual_3d, object )
             gbx.nat32( 0xffffffff )
 
             if has_visual :
@@ -93,7 +93,7 @@ def plug_tree_from_object( gbx: GbxArchive, object: bpy.types.Object ) :
             gbx.nat32( 0xffffffff )
 
         if object_settings.can_export_collision :
-            is_collidable, _ = gbx.mw_ref( plug_surface, object )
+            is_collidable, _, _ = gbx.mw_ref( plug_surface, object )
         else :
             gbx.nat32( 0xffffffff )
 

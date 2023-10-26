@@ -92,7 +92,7 @@ def plug_surface_geom_mesh( gbx: GbxArchive, object: bpy.types.Object ) -> list[
 def plug_surface( gbx: GbxArchive, object: bpy.types.Object ) :
     gbx.nat32( 0x0900C000 )
     gbx.nat32( 0x0900C000 )
-    _, materials = gbx.mw_ref( plug_surface_geom_mesh, object )
+    _, materials, _ = gbx.mw_ref( plug_surface_geom_mesh, object )
 
     gbx.nat32( len( materials ) )
 

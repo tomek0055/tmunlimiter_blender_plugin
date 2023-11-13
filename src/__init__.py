@@ -1,8 +1,8 @@
 bl_info = {
-    "name" : "TrackMania GameBox format exporter",
+    "name" : "TrackMania Unlimiter: Custom Block exporter",
     "author": "Tomek0055",
     "version" : (1, 0, 0),
-    "blender" : (3, 4, 0),
+    "blender" : (4, 0, 0),
     "doc_url" : "https://github.com/tomek0055/io_scene_gbx",
     "support" : "COMMUNITY",
     "category" : "Import-Export",

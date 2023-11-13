@@ -87,13 +87,13 @@ class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
         return ( True, None )
 
     def __validate_variation__( self, variant: TMUnlimiter_Variation ) :
+        if not self.is_trigger_allowed() :
+            return ( True, None )
+
         validation_result = variant.validate_model()
 
         if not validation_result[ 0 ] :
             return validation_result
-
-        if not self.is_trigger_allowed() :
-            return ( True, None )
 
         return variant.validate_trigger()
 

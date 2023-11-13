@@ -115,9 +115,7 @@ class TMUnlimiterObjectTextureCustom( bpy.types.PropertyGroup ) :
             texture_filepath = PureWindowsPath( texture.filepath )
 
             if not texture_filepath.name :
-                raise Exception(
-                    "Provided file path \"{0}\" for {1} texture does not have any file name".format( texture.filepath, texture.get_texture_type().lower() )
-                )
+                raise Exception( f'Provided file path "{ texture.filepath }" for { texture.get_texture_type().lower() } texture does not have any file name' )
 
             custom_texture_references = gbx.context[ "custom_texture_references" ]
 

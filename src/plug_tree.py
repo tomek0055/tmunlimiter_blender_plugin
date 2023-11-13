@@ -70,7 +70,7 @@ def plug_tree_from_object( gbx: GbxArchive, object: bpy.types.Object ) :
             func = gx_light_spot
             rotation.x += pi / 2
         else :
-            raise Exception( "Not supported light type: \"{0}\"".format( light.type ) )
+            raise Exception( f'Not supported light type: "{ light.type }"' )
 
         gbx.nat32( 0x09062001 )
         gbx.mw_ref( func, light )

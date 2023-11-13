@@ -152,6 +152,7 @@ class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
         gbx.context[ "archived_objects" ] = set()
         gbx.context[ "replacement_textures" ] = {}
         gbx.context[ "custom_texture_references" ] = {}
+        root_buffer = gbx.attach_buffer( BytesIO() )
 
         # Archive variant models to the independent buffers
         def archive_object( object: bpy.types.Object ) :
@@ -161,11 +162,11 @@ class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
             if object in gbx.context[ "objects_data" ] :
                 return
 
+            instance_index = gbx.add_instance( write = False )
             primary_buffer = gbx.attach_buffer( BytesIO() )
-            _, _, instance_index = gbx.mw_ref( plug_tree_from_object, object )
-            plug_tree_buffer = gbx.attach_buffer( primary_buffer )
+            plug_tree_from_object( gbx, object )
 
-            gbx.context[ "objects_data" ][ object ] = ( instance_index, plug_tree_buffer )
+            gbx.context[ "objects_data" ][ object ] = ( instance_index, gbx.attach_buffer( primary_buffer ) )
 
         def archive_variation( variation: TMUnlimiter_Variation ) :
             archive_object( variation.model )
@@ -173,7 +174,7 @@ class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
             if self.is_trigger_allowed() :
                 archive_object( variation.trigger )
 
-        available_variants = self.get_available_variants()
+        available_variants = self.get_available_variants( None )
 
         for variant_id, __variant_title__, __variant_description__ in available_variants :
             variants = self.path_resolve( f"variants_{ self.block_type }_{ variant_id }" )
@@ -211,14 +212,6 @@ class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
             gbx.nat8( int( custom_texture_tuple[ 1 ] ) ) # texture.filtering
             gbx.nat8( int( custom_texture_tuple[ 2 ] ) ) # texture.addressing
 
-        # Block type archivization
-        if self.block_type == "classic" :
-            gbx.nat8( 2 )
-        elif self.block_type == "road" :
-            gbx.nat8( 3 )
-        else :
-            raise Exception( f'Unknown block type "{ self.block_type }"' )
-
         # Waypoint type archivization
         if self.waypoint_type == "start" :
             gbx.nat8( 0 )
@@ -233,14 +226,21 @@ class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
         else :
             raise Exception( f'Unknown waypoint type "{ self.waypoint_type }"' )
 
+        # Block type archivization
+        if self.block_type == "classic" :
+            gbx.nat8( 2 )
+        elif self.block_type == "road" :
+            gbx.nat8( 3 )
+        else :
+            raise Exception( f'Unknown block type "{ self.block_type }"' )
+
         # Write variations previously archived to the independent buffers
         def archive_variation_from_gbx_context( object: bpy.types.Object ) :
-            if not object or not object in gbx.context[ "objects_data" ] :
+            if not object :
                 gbx.nat32( -1 )
                 return
 
-            instance_index, plug_tree_data = gbx.context[ "object_data" ][ object ]
-
+            instance_index, plug_tree_data = gbx.context[ "objects_data" ][ object ]
             gbx.nat32( instance_index )
 
             if not object in gbx.context[ "archived_objects" ] :
@@ -248,7 +248,7 @@ class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
                 gbx.data( plug_tree_data )
 
         def archive_variations_from_gbx_context( variations ) :
-            gbx.nat32( len( variations ) )
+            gbx.nat8( len( variations ) )
 
             for variation in variations :
                 archive_variation_from_gbx_context( variation.model )
@@ -282,12 +282,14 @@ class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
         write_spawn_location( self.ground_spawn_location_object )
         write_spawn_location( self.air_spawn_location_object )
 
-        gbx.real( self.air_spawn_location.x )
-        gbx.real( self.air_spawn_location.y )
-        gbx.real( self.air_spawn_location.z )
-        gbx.real( self.air_spawn_rotation.x )
-        gbx.real( self.air_spawn_rotation.y )
-        gbx.real( self.air_spawn_rotation.z )
+        # Finalize archivization
+        chunk_buffer = gbx.attach_buffer( root_buffer ).getvalue()
+
+        gbx.nat32( 0x3f002000 )
+        gbx.nat32( 0x534b4950 )
+        gbx.nat32( len( chunk_buffer ) )
+        gbx.data( chunk_buffer )
+        gbx.nat32( 0xfacade01 )
 
     identifier: bpy.props.StringProperty( name = "Identifier" )
     author: bpy.props.StringProperty( name = "Author" )

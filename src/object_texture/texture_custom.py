@@ -137,27 +137,27 @@ class TMUnlimiterObjectTextureCustom( bpy.types.PropertyGroup ) :
             if self.use_diffuse:
                 textures.append( ( "Diffuse", get_or_create_texture_instance_index( self.diffuse ) ) )
             else:
-                textures.append( ( "Diffuse", get_replacement_texture_instance_index( 0 ) ) )
+                textures.append( ( "Diffuse", get_replacement_texture_instance_index( 2 ) ) )
             
             if self.use_specular:
                 textures.append( ( "Specular", get_or_create_texture_instance_index( self.specular ) ) )
             else:
-                textures.append( ( "Specular", get_replacement_texture_instance_index( 2 ) ) )
+                textures.append( ( "Specular", get_replacement_texture_instance_index( 0 ) ) )
 
             if self.use_normal:
                 textures.append( ( "Normal", get_or_create_texture_instance_index( self.normal ) ) )
             else:
-                textures.append( ( "Normal", get_replacement_texture_instance_index( 3 ) ) )
+                textures.append( ( "Normal", get_replacement_texture_instance_index( 1 ) ) )
 
             if self.use_lighting:
                 textures.append( ( "Lighting", get_or_create_texture_instance_index( self.lighting ) ) )
             else:
-                textures.append( ( "Lighting", get_replacement_texture_instance_index( 1 ) ) )
+                textures.append( ( "Lighting", get_replacement_texture_instance_index( 3 ) ) )
 
             if self.use_occlusion:
                 textures.append( ( "Occlusion", get_or_create_texture_instance_index( self.occlusion ) ) )
             else:
-                textures.append( ( "Occlusion", get_replacement_texture_instance_index( 0 ) ) )
+                textures.append( ( "Occlusion", get_replacement_texture_instance_index( 2 ) ) )
 
             if self.override_cube_ambient:
                 textures.append( ( "CubeAmbient", get_or_create_texture_instance_index( self.cube_ambient ) ) )

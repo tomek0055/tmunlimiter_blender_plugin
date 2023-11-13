@@ -223,10 +223,12 @@ class TMUnlimiter_BlockDefinitionsPanel( bpy.types.Panel ) :
         selected_variation = block_definition.get_selected_variation( selected_variants )
 
         if selected_variation :
-            validation_result, validation_message
             box.prop( selected_variation, "name" )
 
-            validation_result, validation_message = selected_variation.validate_model()
+            if block_definition.is_trigger_allowed() :
+                validation_result, validation_message = selected_variation.validate_model()
+            else :
+                validation_result, validation_message = ( True, None )
 
             box.alert = not validation_result
             box.prop( selected_variation, "model" )

@@ -263,12 +263,24 @@ class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
             archive_variations_from_gbx_context( variants.air_variations )
 
         # Spawn location
-        gbx.real( self.ground_spawn_location.x )
-        gbx.real( self.ground_spawn_location.y )
-        gbx.real( self.ground_spawn_location.z )
-        gbx.real( self.ground_spawn_rotation.x )
-        gbx.real( self.ground_spawn_rotation.y )
-        gbx.real( self.ground_spawn_rotation.z )
+        def write_spawn_location( object: bpy.types.Object ) :
+            if not object :
+                gbx.real( 0 )
+                gbx.real( 0 )
+                gbx.real( 0 )
+                gbx.real( 0 )
+                gbx.real( 0 )
+                gbx.real( 0 )
+            else :
+                gbx.real( object.location.x )
+                gbx.real( object.location.z )
+                gbx.real( -object.location.y )
+                gbx.real( object.rotation_euler.x )
+                gbx.real( object.rotation_euler.z )
+                gbx.real( -object.rotation_euler.y )
+
+        write_spawn_location( self.ground_spawn_location_object )
+        write_spawn_location( self.air_spawn_location_object )
 
         gbx.real( self.air_spawn_location.x )
         gbx.real( self.air_spawn_location.y )
@@ -293,7 +305,8 @@ class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
     variants_road_t_junction: bpy.props.PointerProperty( type = TMUnlimiter_Variants )
     variants_road_cross_junction: bpy.props.PointerProperty( type = TMUnlimiter_Variants )
 
-    ground_spawn_location: bpy.props.FloatVectorProperty( name = "Ground spawn location" )
-    ground_spawn_rotation: bpy.props.FloatVectorProperty( name = "Ground spawn rotation" )
-    air_spawn_location: bpy.props.FloatVectorProperty( name = "Air spawn location" )
-    air_spawn_rotation: bpy.props.FloatVectorProperty( name = "Air spawn rotation" )
+    def poll_suitable_location_object( self, object: bpy.types.Object ) :
+        return object.type == "EMPTY"
+
+    ground_spawn_location_object: bpy.props.PointerProperty( name = "Ground spawn location", type = bpy.types.Object, poll = poll_suitable_location_object )
+    air_spawn_location_object: bpy.props.PointerProperty( name = "Air spawn location", type = bpy.types.Object, poll = poll_suitable_location_object )

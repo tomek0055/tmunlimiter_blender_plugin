@@ -245,10 +245,8 @@ class TMUnlimiter_BlockDefinitionsPanel( bpy.types.Panel ) :
                 if box.alert :
                     box.label( text = validation_message, icon = "ERROR" )
 
-        layout.prop( block_definition, "ground_spawn_location" )
-        layout.prop( block_definition, "ground_spawn_rotation" )
-        layout.prop( block_definition, "air_spawn_location" )
-        layout.prop( block_definition, "air_spawn_rotation" )
+        layout.prop( block_definition, "ground_spawn_location_object" )
+        layout.prop( block_definition, "air_spawn_location_object" )
 
         layout.separator()
         layout.operator( TMUnlimiter_ExportBlockDefinition.bl_idname, text = "Export block definition", icon = "EXPORT" )

@@ -6,9 +6,6 @@ from .blender_gbx import GbxArchive
 import bpy
 
 def plug_solid( gbx: GbxArchive, root: bpy.types.Object | bpy.types.Collection ) :
-# 0x09005000 -- start
-    gbx.nat32( 0x09005000 )
-    gbx.nat32( 0x00000001 )
 # 0x09005011 -- start
     gbx.nat32( 0x09005011 )
     gbx.nat32( 0x00000000 )

@@ -46,6 +46,10 @@ def plug_tree_from_object( gbx: GbxArchive, object: bpy.types.Object ) :
 
     flags = 0x00004004
     scale = object.scale.copy()
+
+    if scale.x != 1.0 or scale.y != 1.0 or scale.z != 1.0 :
+        raise Exception( f'Transform of an object "{ object.name }" has a scale other than 1.0 - Please apply scale transform to your object' )
+
     rotation = object.rotation_euler.copy()
     has_visual = False
     is_collidable = False

@@ -52,16 +52,16 @@ def plug_visual_3d( gbx: GbxArchive, object: bpy.types.Object ) :
 
             loops.append( vert.index )
 
-    if len( verts_data ) > 65535 :
+    if len( mesh.verts ) > 65535 :
         raise Exception( f'Object "{ object.name }" exceeds 65535 vertices' )
 
 # 09-01E-000 -- Start
     gbx.nat32( 0x0901E000 )
 # 09-006-00E -- Start
     gbx.nat32( 0x0900600E )
-    gbx.nat32( 0x00020038 )
+    gbx.nat32( 0x00000078 )
     gbx.nat32( len( uvs ) )
-    gbx.nat32( len( verts_data ) )
+    gbx.nat32( len( mesh.verts ) )
     gbx.nat32( 0x00000000 )
 
     mesh.verts.ensure_lookup_table()
@@ -70,14 +70,15 @@ def plug_visual_3d( gbx: GbxArchive, object: bpy.types.Object ) :
         gbx.nat32( 0x00000000 )
 
         for vert in mesh.verts :
-            if vert.index not in verts_data :
-                continue
+            if vert.index in verts_data :
+                verts, uv_codes = verts_data[ vert.index ]
+                uv_coord = uv_codes[ verts.index( vert ) ][ uv_idx ]
 
-            verts, uv_codes = verts_data[ vert.index ]
-            uv_coord = uv_codes[ verts.index( vert ) ][ uv_idx ]
-
-            gbx.real( uv_coord[ 0 ] )
-            gbx.real( uv_coord[ 1 ] )
+                gbx.real( uv_coord[ 0 ] )
+                gbx.real( uv_coord[ 1 ] )
+            else :
+                gbx.real( 0 )
+                gbx.real( 0 )
 
     half_diag = (
         ( max_vert_coord[ 0 ] - min_vert_coord[ 0 ] ) / 2,
@@ -97,9 +98,6 @@ def plug_visual_3d( gbx: GbxArchive, object: bpy.types.Object ) :
     gbx.nat32( 0x0902C004 )
 
     for vert in mesh.verts :
-        if vert.index not in verts_data :
-            continue
-
         gbx.real( vert.co.x )
         gbx.real( vert.co.z )
         gbx.real( -vert.co.y )

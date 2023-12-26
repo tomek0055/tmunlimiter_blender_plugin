@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from .texture_props import (
     TMUnlimiterTextureProps,
     TMUnlimiterDiffuseProps,
@@ -101,6 +103,28 @@ class TMUnlimiterObjectTextureCustom( bpy.types.PropertyGroup ) :
         name = "Clouds",
         type = TMUnlimiterCloudsProps
     )
+
+    def copy_from( self, texture_custom: TMUnlimiterObjectTextureCustom ) :
+        self.use_diffuse = texture_custom.use_diffuse
+        self.use_specular = texture_custom.use_specular
+        self.use_normal = texture_custom.use_normal
+        self.use_lighting = texture_custom.use_lighting
+        self.use_occlusion = texture_custom.use_occlusion
+        self.override_cube_ambient = texture_custom.override_cube_ambient
+        self.override_reflect_soft = texture_custom.override_reflect_soft
+        self.override_fresnel = texture_custom.override_fresnel
+        self.override_clouds = texture_custom.override_clouds
+        self.is_double_sided = texture_custom.is_double_sided
+
+        self.diffuse.copy_from( texture_custom.diffuse )
+        self.specular.copy_from( texture_custom.specular )
+        self.normal.copy_from( texture_custom.normal )
+        self.lighting.copy_from( texture_custom.lighting )
+        self.occlusion.copy_from( texture_custom.occlusion )
+        self.cube_ambient.copy_from( texture_custom.cube_ambient )
+        self.reflect_soft.copy_from( texture_custom.reflect_soft )
+        self.fresnel.copy_from( texture_custom.fresnel )
+        self.clouds.copy_from( texture_custom.clouds )
 
     def archive( self, gbx: GbxArchive ) :
         def get_replacement_texture_instance_index( replacement_texture_type: int ) -> int :

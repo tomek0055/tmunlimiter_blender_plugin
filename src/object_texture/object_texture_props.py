@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from .texture_custom import TMUnlimiterObjectTextureCustom
 from .texture_props import (
     TMUnlimiterTextureProps,
@@ -34,6 +36,11 @@ class TMUnlimiterObjectTextureProps( bpy.types.PropertyGroup ) :
     texture_game: bpy.props.PointerProperty(
         type = TMUnlimiterObjectTextureGame,
     )
+
+    def copy_from( self, texture_props: TMUnlimiterObjectTextureProps ) :
+        self.texture_type = texture_props.texture_type
+        self.texture_game.copy_from( texture_props.texture_game )
+        self.texture_custom.copy_from( texture_props.texture_custom )
 
     def archive( self, gbx: GbxArchive ) :
         if self.texture_props.texture_type == "None" :

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import bpy
 
 class TMUnlimiterTextureProps( bpy.types.PropertyGroup ) :
@@ -28,6 +30,11 @@ class TMUnlimiterTextureProps( bpy.types.PropertyGroup ) :
         ],
         default = "2",
     )
+
+    def copy_from( self, texture_props: TMUnlimiterTextureProps ) :
+        self.filepath = texture_props.filepath
+        self.filtering = texture_props.filtering
+        self.addressing = texture_props.addressing
 
     def get_texture_type( self ) -> str :
         raise Exception( "Not implemented" )

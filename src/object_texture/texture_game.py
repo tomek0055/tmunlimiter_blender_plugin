@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from .game_materials.stadium import MATERIALS_STADIUM
 from .game_materials.alpine import MATERIALS_ALPINE
 from .game_materials.island import MATERIALS_ISLAND
@@ -46,6 +48,10 @@ class TMUnlimiterObjectTextureGame( bpy.types.PropertyGroup ) :
         name = "Game material",
         items = get_environment_materials,
     )
+
+    def copy_from( self, texture_game: TMUnlimiterObjectTextureGame ) :
+        self.environment = texture_game.environment
+        self.game_material = texture_game.game_material
 
     def archive( self, gbx: GbxArchive ) :
         gbx.external_ref( ( self.environment, "Media", "Material" ), ExternalRef( self.game_material ) )

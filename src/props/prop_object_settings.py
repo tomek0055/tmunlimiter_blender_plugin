@@ -9,6 +9,12 @@ import bpy
 
 class TMUnlimiterObjectSettings( bpy.types.PropertyGroup ) :
 
+    can_export_object_name: bpy.props.BoolProperty(
+        name = "Export object name",
+        default = False,
+        description = "This option controls whenever the object name is saved to the file during export",
+    )
+
     can_export_geometry: bpy.props.BoolProperty(
         name = "Export geometry",
         default = True,

@@ -40,6 +40,7 @@ class TMUnlimiterObjectSettings( bpy.types.PropertyGroup ) :
     )
 
     visual_mip_distance: bpy.props.FloatProperty(
+        min = 0,
         name = "LOD distance",
         default = 0,
         description = "This option controls the distance at which an object is displayed",

@@ -109,6 +109,9 @@ def plug_tree_from_object( gbx: GbxArchive, object: bpy.types.Object ) :
     if is_collidable :
         flags |= 0x00000080
 
+        if scale.x != 1.0 or scale.y != 1.0 or scale.z != 1.0 :
+            raise Exception( f'An object "{ object.name }" has a collision with a scale other than 1.0 - Please apply a scale transform to your object' )
+
     gbx.nat32( 0x0904f01a )
     gbx.nat32( flags )
 

@@ -21,6 +21,12 @@ class TMUnlimiterObjectSettings( bpy.types.PropertyGroup ) :
         description = "This option controls export of the collision data",
     )
 
+    exclude_from_export: bpy.props.BoolProperty(
+        name = "Exclude from export",
+        default = False,
+        description = "This option excludes an object from being saved during export"
+    )
+
     texture_props: bpy.props.PointerProperty(
         type = TMUnlimiterObjectTextureProps,
     )

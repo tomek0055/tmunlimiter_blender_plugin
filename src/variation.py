@@ -2,7 +2,16 @@ import bpy
 
 class TMUnlimiter_Variation( bpy.types.PropertyGroup ) :
     def poll_object( self, object: bpy.types.Object ) :
-        return type( object.data ) == bpy.types.Mesh
+        if object.type in { "MESH", "LIGHT" } :
+            return True
+
+        child_objects = object.children
+
+        for child_object in child_objects :
+            if self.poll_object( child_object ) :
+                return True
+
+        return False
 
     name: bpy.props.StringProperty( name = "Variation Name" )
     model: bpy.props.PointerProperty( name = "Model", type = bpy.types.Object, poll = poll_object )

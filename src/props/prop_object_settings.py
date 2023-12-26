@@ -139,14 +139,29 @@ class TMUnlimiterObjectSettingsPanel( bpy.types.Panel ) :
         return context.active_object.type in { "MESH", "EMPTY", "LIGHT" }
 
     def draw( self, context: bpy.context ) :
-        data: TMUnlimiterObjectSettings = context.active_object.unlimiter_object_settings
+        object = context.active_object
+        object_settings: TMUnlimiterObjectSettings = object.unlimiter_object_settings
 
-        self.layout.prop( data, "can_export_geometry" )
+        self.layout.prop( object_settings, "exclude_from_export" )
 
-        if data.can_export_geometry :
-            self.draw_model_ui( data.texture_props )
-        
-        self.layout.prop( data, "can_export_collision" )
+        if object_settings.exclude_from_export :
+            return
+
+        if object.type == "EMPTY" :
+            self.layout.prop( object_settings, "is_visual_mip" )
+
+        if object.parent and object.parent.unlimiter_object_settings.is_visual_mip :
+            self.layout.prop( object_settings, "visual_mip_distance" )
+
+        self.layout.prop( object_settings, "can_export_object_name" )
+
+        if object.type == "MESH" :
+            self.layout.prop( object_settings, "can_export_geometry" )
+
+            if object_settings.can_export_geometry :
+                self.draw_model_ui( object_settings.texture_props )
+
+            self.layout.prop( object_settings, "can_export_collision" )
 
 def __register__() :
     object_texture_props_register()

@@ -110,6 +110,10 @@ class TMUnlimiterObjectSettingsPanel( bpy.types.Panel ) :
             layout.prop( props.texture_game, "environment" )
             layout.prop( props.texture_game, "game_material" )
 
+    @classmethod
+    def poll( self, context: bpy.context ) :
+        return context.active_object.type in { "MESH", "EMPTY", "LIGHT" }
+
     def draw( self, context: bpy.context ) :
         data: TMUnlimiterObjectSettings = context.active_object.unlimiter_object_settings
 

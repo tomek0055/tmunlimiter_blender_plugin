@@ -39,6 +39,12 @@ class TMUnlimiterObjectSettings( bpy.types.PropertyGroup ) :
         description = "This option represents an object as a Level of Detail container during export",
     )
 
+    visual_mip_distance: bpy.props.FloatProperty(
+        name = "LOD distance",
+        default = 0,
+        description = "This option controls the distance at which an object is displayed",
+    )
+
     texture_props: bpy.props.PointerProperty(
         type = TMUnlimiterObjectTextureProps,
     )

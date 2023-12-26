@@ -72,7 +72,6 @@ class TMUnlimiterObjectSettingsPanel( bpy.types.Panel ) :
             texture_custom = props.texture_custom
 
             layout_root = self.layout.box()
-            layout_root.prop( texture_custom, "usage" )
             layout_root.prop( texture_custom, "is_double_sided" )
 
             layout_root.separator()

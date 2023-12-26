@@ -24,15 +24,22 @@ from .props.block_definitions_panel import (
     __unregister__ as block_definitions_panel_unregister,
 )
 
+from .props.multiobject_operations_panel import (
+    __register__ as multiobject_operations_panel_register,
+    __unregister__ as multiobject_operations_panel_unregister,
+)
+
 def register() :
     object_settings_register()
     material_collision_register()
     block_definitions_panel_register()
+    multiobject_operations_panel_register()
 
 def unregister() :
     object_settings_unregister()
     material_collision_unregister()
     block_definitions_panel_unregister()
+    multiobject_operations_panel_unregister()
 
 if __name__ == "__main__" :
     register()

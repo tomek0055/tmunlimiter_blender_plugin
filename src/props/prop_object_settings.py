@@ -33,6 +33,12 @@ class TMUnlimiterObjectSettings( bpy.types.PropertyGroup ) :
         description = "This option excludes an object from being saved during export"
     )
 
+    is_visual_mip: bpy.props.BoolProperty(
+        name = "Is LOD container",
+        default = False,
+        description = "This option represents an object as a Level of Detail container during export",
+    )
+
     texture_props: bpy.props.PointerProperty(
         type = TMUnlimiterObjectTextureProps,
     )

@@ -5,7 +5,7 @@ class TMUnlimiter_ApplyObjectSettingsToSelectedObjects( bpy.types.Operator ) :
     bl_label = "Apply object settings to selected objects"
     bl_idname = "scene.tmunlimiter_apply_object_settings_to_selected_objects"
     bl_options = { "REGISTER", "UNDO" }
-    bl_description = "Apply settings of the actively selected object (the last one) to the other objects being currently selected"
+    bl_description = "Apply object settings from last selected object to other selected objects"
 
     apply_geometry: bpy.props.BoolProperty(
         name = "Apply geometry settings",
@@ -49,14 +49,25 @@ class TMUnlimiter_ApplyObjectSettingsToSelectedObjects( bpy.types.Operator ) :
 
         return { "FINISHED" }
 
+class TMUnlimiter_OperatorsMenu( bpy.types.Menu ) :
+    bl_label = "TMUnlimiter"
+    bl_idname = "VIEW3D_MT_tmunlimiter_operators"
+
+    def draw( self, context: bpy.context ) :
+        self.layout.operator( TMUnlimiter_ApplyObjectSettingsToSelectedObjects.bl_idname )
+
 def _add_operator( self, context: bpy.context ) :
-    self.layout.separator()
-    self.layout.operator( TMUnlimiter_ApplyObjectSettingsToSelectedObjects.bl_idname )
+    if context.mode == "OBJECT" :
+        self.layout.menu( TMUnlimiter_OperatorsMenu.bl_idname )
 
 def __register__() :
+    bpy.utils.register_class( TMUnlimiter_OperatorsMenu )
     bpy.utils.register_class( TMUnlimiter_ApplyObjectSettingsToSelectedObjects )
-    bpy.types.VIEW3D_MT_object.append( _add_operator )
+
+    bpy.types.VIEW3D_MT_editor_menus.append( _add_operator )
 
 def __unregister__() :
     bpy.utils.unregister_class( TMUnlimiter_ApplyObjectSettingsToSelectedObjects )
-    bpy.types.VIEW3D_MT_object.remove( _add_operator )
+    bpy.utils.unregister_class( TMUnlimiter_OperatorsMenu )
+
+    bpy.types.VIEW3D_MT_editor_menus.remove( _add_operator )

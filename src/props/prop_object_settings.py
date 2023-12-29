@@ -50,6 +50,13 @@ class TMUnlimiterObjectSettings( bpy.types.PropertyGroup ) :
         type = TMUnlimiterObjectTextureProps,
     )
 
+    show_full_path: bpy.props.BoolProperty(
+        name = "Show full path",
+        default = False,
+        options = { "SKIP_SAVE" },
+        description = "This option toggle visibility of the texture path",
+    )
+
     def archive_material( self, gbx: GbxArchive ) :
         if self.texture_props.texture_type == "Game" :
             self.texture_props.texture_game.archive( gbx )
@@ -65,11 +72,12 @@ class TMUnlimiterObjectSettingsPanel( bpy.types.Panel ) :
     bl_region_type = "WINDOW"
     bl_context = "object"
 
-    def draw_model_ui( self, props: TMUnlimiterObjectTextureProps ) :
-        self.layout.prop( props, "texture_type" )
+    def draw_model_ui( self, object_settings: TMUnlimiterObjectSettings ) :
+        texture_props = object_settings.texture_props
+        self.layout.prop( texture_props, "texture_type" )
 
-        if props.texture_type == "Custom" :
-            texture_custom = props.texture_custom
+        if texture_props.texture_type == "Custom" :
+            texture_custom = texture_props.texture_custom
 
             layout_root = self.layout.box()
             layout_root.prop( texture_custom, "is_double_sided" )
@@ -85,54 +93,104 @@ class TMUnlimiterObjectSettingsPanel( bpy.types.Panel ) :
 
             layout_root.prop( texture_custom, "use_diffuse" )
 
-            if props.texture_custom.use_diffuse:
+            if texture_props.texture_custom.use_diffuse:
                 draw_texture_layout( layout_root.box(), texture_custom.diffuse )
 
             layout_root.prop( texture_custom, "use_specular" )
 
-            if props.texture_custom.use_specular:
+            if texture_props.texture_custom.use_specular:
                 draw_texture_layout( layout_root.box(), texture_custom.specular )
 
             layout_root.prop( texture_custom, "use_normal" )
 
-            if props.texture_custom.use_normal:
+            if texture_props.texture_custom.use_normal:
                 draw_texture_layout( layout_root.box(), texture_custom.normal )
 
             layout_root.prop( texture_custom, "use_lighting" )
 
-            if props.texture_custom.use_lighting:
+            if texture_props.texture_custom.use_lighting:
                 draw_texture_layout( layout_root.box(), texture_custom.lighting )
 
             layout_root.prop( texture_custom, "use_occlusion" )
 
-            if props.texture_custom.use_occlusion:
+            if texture_props.texture_custom.use_occlusion:
                 draw_texture_layout( layout_root.box(), texture_custom.occlusion )
 
             layout_root.prop( texture_custom, "override_cube_ambient" )
 
-            if props.texture_custom.override_cube_ambient:
+            if texture_props.texture_custom.override_cube_ambient:
                 draw_texture_layout( layout_root.box(), texture_custom.cube_ambient )
 
             layout_root.prop( texture_custom, "override_reflect_soft" )
 
-            if props.texture_custom.override_reflect_soft:
+            if texture_props.texture_custom.override_reflect_soft:
                 draw_texture_layout( layout_root.box(), texture_custom.reflect_soft )
 
             layout_root.prop( texture_custom, "override_fresnel" )
 
-            if props.texture_custom.override_fresnel:
+            if texture_props.texture_custom.override_fresnel:
                 draw_texture_layout( layout_root.box(), texture_custom.fresnel )
 
             layout_root.prop( texture_custom, "override_clouds" )
 
-            if props.texture_custom.override_clouds:
+            if texture_props.texture_custom.override_clouds:
                 draw_texture_layout( layout_root.box(), texture_custom.clouds )
 
-        elif props.texture_type == "Game" :
+        elif texture_props.texture_type == "Game" :
             layout = self.layout.box()
 
-            layout.prop( props.texture_game, "environment" )
-            layout.prop( props.texture_game, "game_material" )
+            layout.prop( texture_props.texture_game, "environment" )
+            layout.prop( texture_props.texture_game, "game_material" )
+
+            result, selected_environment_material = texture_props.texture_game.get_selected_environment_material()
+
+            if not result :
+                return
+
+            _, material_uv_layers = selected_environment_material
+
+            layout = self.layout.box()
+
+            row = layout.row()
+            row.alignment = "CENTER"
+
+            if len( material_uv_layers ) == 0 :
+                row.label( text = "This material does not use any UV layer" )
+            else :
+                row.label( text = f'This material use { len( material_uv_layers ) } UV { "layers" if len( material_uv_layers ) > 1 else "layer" }' )
+
+                row = row.row()
+                row.alignment = "CENTER"
+                row.prop( object_settings, "show_full_path" )
+
+                for uv_layer_index, uv_layer_textures in enumerate( material_uv_layers ) :
+                    row = layout.row()
+                    row.scale_y = 0.5
+
+                    if uv_layer_index == 0 :
+                        uv_layer_label = "1st"
+                    elif uv_layer_index == 1 :
+                        uv_layer_label = "2nd"
+                    elif uv_layer_index == 2 :
+                        uv_layer_label = "3rd"
+                    else :
+                        uv_layer_label = f"{ 1 + uv_layer_index }th"
+
+                    row.label( text = f'{ uv_layer_label } UV layer:' )
+
+                    for texture_purpose, texture_filepath in uv_layer_textures :
+                        if object_settings.show_full_path :
+                            texture_filepath = list( texture_filepath )
+                            texture_filepath.reverse()
+                            texture_filepath = "\\".join( texture_filepath )
+                        else :
+                            texture_filepath = texture_filepath[ 0 ]
+
+                        row = layout.row()
+                        row.scale_y = 0.6
+                        row.label( text = f'{ " " * 8 }{ texture_purpose } - { texture_filepath }' )
+
+                    layout.separator()
 
     @classmethod
     def poll( self, context: bpy.context ) :
@@ -159,7 +217,7 @@ class TMUnlimiterObjectSettingsPanel( bpy.types.Panel ) :
             self.layout.prop( object_settings, "can_export_geometry" )
 
             if object_settings.can_export_geometry :
-                self.draw_model_ui( object_settings.texture_props )
+                self.draw_model_ui( object_settings )
 
             self.layout.prop( object_settings, "can_export_collision" )
 

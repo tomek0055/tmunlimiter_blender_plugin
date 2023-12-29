@@ -26,7 +26,7 @@ class TMUnlimiterObjectTextureGame( bpy.types.PropertyGroup ) :
         default = "Stadium",
     )
 
-    def get_environment_materials( self, _ ) :
+    def get_environment_materials( self ) :
         if self.environment == "Speed" :
             return MATERIALS_SPEED
         elif self.environment == "Rally" :
@@ -42,11 +42,29 @@ class TMUnlimiterObjectTextureGame( bpy.types.PropertyGroup ) :
         elif self.environment == "Stadium" :
             return MATERIALS_STADIUM
         else :
-            raise "Unknown environment \"{0}\"".format( self.environment )
+            raise Exception( "Unknown environment \"{0}\"".format( self.environment ) )
+
+    def get_selected_environment_material( self ) :
+        environment_materials = self.get_environment_materials()
+
+        for environment_material in environment_materials :
+            if environment_material[ 0 ] == self.game_material :
+                return ( True, environment_material )
+
+        return ( False, None )
+
+    def get_prepared_environment_materials_enum( self, _ ) :
+        environment_materials = self.get_environment_materials()
+        result = []
+
+        for environment_material in environment_materials :
+            result.append( ( environment_material[ 0 ], environment_material[ 0 ][ : -13 ], "" ) )
+
+        return result
 
     game_material: bpy.props.EnumProperty(
         name = "Game material",
-        items = get_environment_materials,
+        items = get_prepared_environment_materials_enum,
     )
 
     def copy_from( self, texture_game: TMUnlimiterObjectTextureGame ) :

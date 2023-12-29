@@ -44,6 +44,37 @@ class TMUnlimiter_RemoveBlockDefinition( bpy.types.Operator ) :
 
         return { "FINISHED" }
 
+class TMUnlimiter_CopyBlockDefinition( bpy.types.Operator ) :
+    bl_label = "Copy selected block definition"
+    bl_idname = "scene.tmunlimiter_copy_block_definition"
+
+    def execute( self, context: bpy.context ) :
+        if context.scene.tmunlimiter_selected_block_definition_index >= len( context.scene.tmunlimiter_block_definitions ) :
+            return { "CANCELLED" }
+
+        old_block_definition = context.scene.tmunlimiter_block_definitions[ context.scene.tmunlimiter_selected_block_definition_index ]
+        new_block_definition = context.scene.tmunlimiter_block_definitions.add()
+
+        new_block_definition.identifier = old_block_definition.identifier
+        new_block_definition.author = old_block_definition.author
+        new_block_definition.block_type = old_block_definition.block_type
+        new_block_definition.waypoint_type = old_block_definition.waypoint_type
+        new_block_definition.selected_variant = old_block_definition.selected_variant
+        new_block_definition.selected_variant_type = old_block_definition.selected_variant_type
+        new_block_definition.variants_classic_default.copy_from( old_block_definition.variants_classic_default )
+        new_block_definition.variants_road_piece.copy_from( old_block_definition.variants_road_piece )
+        new_block_definition.variants_road_deadend.copy_from( old_block_definition.variants_road_deadend )
+        new_block_definition.variants_road_turn.copy_from( old_block_definition.variants_road_turn )
+        new_block_definition.variants_road_straight.copy_from( old_block_definition.variants_road_straight )
+        new_block_definition.variants_road_t_junction.copy_from( old_block_definition.variants_road_t_junction )
+        new_block_definition.variants_road_cross_junction.copy_from( old_block_definition.variants_road_cross_junction )
+        new_block_definition.ground_spawn_location_object = old_block_definition.ground_spawn_location_object
+        new_block_definition.air_spawn_location_object = old_block_definition.air_spawn_location_object
+
+        context.scene.tmunlimiter_selected_block_definition_index = len( context.scene.tmunlimiter_block_definitions ) - 1
+
+        return { "FINISHED" }
+
 class TMUnlimiter_AddVariation( bpy.types.Operator ) :
     bl_label = "Add variation"
     bl_idname = "scene.tmunlimiter_add_variation"
@@ -165,9 +196,13 @@ class TMUnlimiter_BlockDefinitionsPanel( bpy.types.Panel ) :
         col.operator( TMUnlimiter_AddBlockDefinition.bl_idname, text = "", icon = "ADD" )
         col.operator( TMUnlimiter_RemoveBlockDefinition.bl_idname, text = "", icon = "REMOVE" )
 
+        row = layout.row()
+        row.operator( TMUnlimiter_CopyBlockDefinition.bl_idname, icon = "COPY_ID" )
+
         block_definition = block_definition = get_selected_block_definition( context )
 
         if block_definition is None:
+            row.enabled = False
             return
 
         validation_result, validation_message = block_definition.validate_identifier()
@@ -259,6 +294,7 @@ def __register__() :
     bpy.utils.register_class( TMUnlimiter_BlockDefinitionItem )
     bpy.utils.register_class( TMUnlimiter_AddBlockDefinition )
     bpy.utils.register_class( TMUnlimiter_RemoveBlockDefinition )
+    bpy.utils.register_class( TMUnlimiter_CopyBlockDefinition )
     bpy.utils.register_class( TMUnlimiter_AddVariation )
     bpy.utils.register_class( TMUnlimiter_RemoveVariation )
     bpy.utils.register_class( TMUnlimiter_BlockDefinitionsPanel )
@@ -275,6 +311,7 @@ def __unregister__() :
     bpy.utils.unregister_class( TMUnlimiter_BlockDefinitionsPanel )
     bpy.utils.unregister_class( TMUnlimiter_RemoveVariation )
     bpy.utils.unregister_class( TMUnlimiter_AddVariation )
+    bpy.utils.unregister_class( TMUnlimiter_CopyBlockDefinition )
     bpy.utils.unregister_class( TMUnlimiter_RemoveBlockDefinition )
     bpy.utils.unregister_class( TMUnlimiter_AddBlockDefinition )
     bpy.utils.unregister_class( TMUnlimiter_BlockDefinitionItem )

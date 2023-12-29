@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import bpy
 
 class TMUnlimiter_Variation( bpy.types.PropertyGroup ) :
@@ -16,6 +18,11 @@ class TMUnlimiter_Variation( bpy.types.PropertyGroup ) :
     name: bpy.props.StringProperty( name = "Variation Name" )
     model: bpy.props.PointerProperty( name = "Model", type = bpy.types.Object, poll = poll_object )
     trigger: bpy.props.PointerProperty( name = "Trigger", type = bpy.types.Object, poll = poll_object )
+
+    def copy_from( self, other: TMUnlimiter_Variation ) :
+        self.name = other.name
+        self.model = other.model
+        self.trigger = other.trigger
 
     def validate_model( self ) :
         if not self.model :

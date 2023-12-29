@@ -3,10 +3,8 @@ bl_info = {
     "author": "Tomek0055",
     "version" : (1, 0, 0),
     "blender" : (4, 0, 0),
-    "doc_url" : "https://github.com/tomek0055/io_scene_gbx",
+    "doc_url" : "https://github.com/tomek0055/tmunlimiter_blender_plugin",
     "support" : "COMMUNITY",
-    "category" : "Import-Export",
-    "location" : "File > Import-Export",
 }
 
 from .props.prop_material_collision import (

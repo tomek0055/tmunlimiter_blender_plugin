@@ -6,51 +6,46 @@ import bpy
 def plug_visual_3d( gbx: GbxArchive, object: bpy.types.Object ) :
     mesh = bmesh.new()
     mesh.from_object( object, gbx.context[ "depsgraph" ] )
+
     bmesh.ops.triangulate( mesh, faces = mesh.faces )
 
-    uvs = list( enumerate( mesh.loops.layers.uv.values() ) )
-    tris = mesh.calc_loop_triangles()
+    # Delete loose vertices
+    loose_vertices = [ vert for vert in mesh.verts if not vert.link_faces ]
 
-    loops = []
+    if len( loose_vertices ) :
+        bmesh.ops.delete( mesh, geom = loose_vertices )
+        mesh.verts.ensure_lookup_table()
+
+    del loose_vertices
+
+    # Perform vertex duplication if single vertex links with multiple edges and in each link have different UV coordinates
     verts_data = {}
-    min_vert_coord = [ +math.inf, +math.inf, +math.inf ]
-    max_vert_coord = [ -math.inf, -math.inf, -math.inf ]
+    tris = mesh.calc_loop_triangles()
+    uvs = list( mesh.loops.layers.uv.values() )
 
     for tri_loops in tris :
         for tri_loop in tri_loops :
             vert = tri_loop.vert
-            uv_code = []
+            uv_tuple = tuple()
 
-            for uv_idx, uv_layer in uvs :
-                uv_code.append( tri_loop[ uv_layer ].uv.to_tuple() )
+            for uv_layer in uvs :
+                uv_tuple = uv_tuple + tri_loop[ uv_layer ].uv.to_tuple()
 
-            if vert.index not in verts_data :
-                verts, uv_codes = verts_data[ vert.index ] = (
-                    [ vert ],    # verts
-                    [ uv_code ], # uv_codes
-                )
+            if vert not in verts_data :
+                vert_uv_tuples, uv_tuple_verts = verts_data[ vert ] = ( [], [] )
+
+                vert_uv_tuples.append( uv_tuple )
+                uv_tuple_verts.append( vert )
             else :
-                verts, uv_codes = verts_data[ vert.index ]
+                vert_uv_tuples, uv_tuple_verts = verts_data[ vert ]
 
-            if uv_code not in uv_codes :
-                new_vert = mesh.verts.new( vert.co, vert )
-                new_vert.index = len( mesh.verts ) - 1
-                verts.append( new_vert )
+            if uv_tuple not in vert_uv_tuples :
+                vert = bmesh.utils.face_vert_separate( tri_loop.face, vert )
 
-                verts_data[ new_vert.index ] = verts_data[ vert.index ]
-                uv_codes.append( uv_code )
-                vert = new_vert
+                vert_uv_tuples.append( uv_tuple )
+                uv_tuple_verts.append( vert )
             else :
-                vert = verts[ uv_codes.index( uv_code ) ]
-
-            min_vert_coord[ 0 ] = min( min_vert_coord[ 0 ], vert.co.x )
-            min_vert_coord[ 1 ] = min( min_vert_coord[ 1 ], vert.co.y )
-            min_vert_coord[ 2 ] = min( min_vert_coord[ 2 ], vert.co.z )
-            max_vert_coord[ 0 ] = max( max_vert_coord[ 0 ], vert.co.x )
-            max_vert_coord[ 1 ] = max( max_vert_coord[ 1 ], vert.co.y )
-            max_vert_coord[ 2 ] = max( max_vert_coord[ 2 ], vert.co.z )
-
-            loops.append( vert.index )
+                vert = uv_tuple_verts[ vert_uv_tuples.index( uv_tuple ) ]
 
     if len( mesh.verts ) > 65535 :
         raise Exception( f'Object "{ object.name }" exceeds 65535 vertices' )
@@ -64,21 +59,46 @@ def plug_visual_3d( gbx: GbxArchive, object: bpy.types.Object ) :
     gbx.nat32( len( mesh.verts ) )
     gbx.nat32( 0x00000000 )
 
-    mesh.verts.ensure_lookup_table()
+    # Calculate new vertex indices and normals. Calculate bounding box.
+    mesh.verts.index_update()
+    mesh.normal_update()
 
-    for uv_idx, _ in uvs :
+    loops = []
+    verts_data = {}
+    tris = mesh.calc_loop_triangles()
+    min_vert_coord = [ +math.inf, +math.inf, +math.inf ]
+    max_vert_coord = [ -math.inf, -math.inf, -math.inf ]
+
+    for tri_loops in tris :
+        for tri_loop in tri_loops :
+            vert = tri_loop.vert
+            uv_tuple = tuple()
+
+            for uv_layer in uvs :
+                uv_tuple = uv_tuple + tri_loop[ uv_layer ].uv.to_tuple()
+
+            if vert not in verts_data :
+                verts_data[ vert ] = uv_tuple
+
+            min_vert_coord[ 0 ] = min( min_vert_coord[ 0 ], vert.co.x )
+            min_vert_coord[ 1 ] = min( min_vert_coord[ 1 ], vert.co.y )
+            min_vert_coord[ 2 ] = min( min_vert_coord[ 2 ], vert.co.z )
+            max_vert_coord[ 0 ] = max( max_vert_coord[ 0 ], vert.co.x )
+            max_vert_coord[ 1 ] = max( max_vert_coord[ 1 ], vert.co.y )
+            max_vert_coord[ 2 ] = max( max_vert_coord[ 2 ], vert.co.z )
+
+            loops.append( vert.index )
+
+    for uv_index in range( len( uvs ) ) :
+        uv_tuple_offset = 2 * uv_index
+
         gbx.nat32( 0x00000000 )
 
         for vert in mesh.verts :
-            if vert.index in verts_data :
-                verts, uv_codes = verts_data[ vert.index ]
-                uv_coord = uv_codes[ verts.index( vert ) ][ uv_idx ]
+            uv_tuple = verts_data[ vert ]
 
-                gbx.real( uv_coord[ 0 ] )
-                gbx.real( uv_coord[ 1 ] )
-            else :
-                gbx.real( 0 )
-                gbx.real( 0 )
+            gbx.real( uv_tuple[ 0 + uv_tuple_offset ] )
+            gbx.real( uv_tuple[ 1 + uv_tuple_offset ] )
 
     half_diag = (
         ( max_vert_coord[ 0 ] - min_vert_coord[ 0 ] ) / 2,

@@ -6,7 +6,7 @@ class TMUnlimiterTextureProps( bpy.types.PropertyGroup ) :
 
     filepath: bpy.props.StringProperty(
         name = "File path",
-        description = "Texture file path relative to the \"Texures\" directory"
+        description = "Texture file path relative to the \"Data\" directory"
     )
 
     filtering: bpy.props.EnumProperty(

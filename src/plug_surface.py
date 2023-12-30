@@ -52,9 +52,9 @@ def plug_surface_geom_mesh( gbx: GbxArchive, object: bpy.types.Object ) -> list[
     for vertex_index in vertices_index :
         vertex = mesh.verts[ vertex_index ]
 
-        gbx.real( vertex.co.x )
+        gbx.real( vertex.co.y )
         gbx.real( vertex.co.z )
-        gbx.real( -vertex.co.y )
+        gbx.real( vertex.co.x )
 
         vertex_translation_table[ vertex_index ] = len( vertex_translation_table )
 
@@ -62,11 +62,11 @@ def plug_surface_geom_mesh( gbx: GbxArchive, object: bpy.types.Object ) -> list[
     gbx.nat32( len( faces ) )
 
     for face in faces :
-        gbx.real( face.normal.x )
+        gbx.real( face.normal.y )
         gbx.real( face.normal.z )
-        gbx.real( -face.normal.y )
+        gbx.real( face.normal.x )
         gbx.real( 0 )
-        
+
         loops: list[bmesh.types.BMLoop] = face.loops
 
         for loop in loops :
@@ -79,7 +79,7 @@ def plug_surface_geom_mesh( gbx: GbxArchive, object: bpy.types.Object ) -> list[
     gbx.nat32( 0 )
     # this field is ignored in "Mesh" surface type
     gbx.nat16( 0 )
-    # naura
+    # chunk end
     gbx.nat32( 0xFACADE01 )
 
     return list(

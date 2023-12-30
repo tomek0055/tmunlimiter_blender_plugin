@@ -272,12 +272,12 @@ class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
                 gbx.real( 0 )
                 gbx.real( 0 )
             else :
-                gbx.real( object.location.x )
+                gbx.real( object.location.y )
                 gbx.real( object.location.z )
-                gbx.real( -object.location.y )
-                gbx.real( object.rotation_euler.x )
+                gbx.real( object.location.x )
+                gbx.real( object.rotation_euler.y )
                 gbx.real( object.rotation_euler.z )
-                gbx.real( -object.rotation_euler.y )
+                gbx.real( object.rotation_euler.x )
 
         write_spawn_location( self.ground_spawn_location_object )
         write_spawn_location( self.air_spawn_location_object )

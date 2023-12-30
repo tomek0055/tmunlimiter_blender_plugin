@@ -65,6 +65,54 @@ class TMUnlimiterObjectSettings( bpy.types.PropertyGroup ) :
         else :
             gbx.nat32( 0xffffffff )
 
+class TMUnlimiter_ApplyObjectSettingsToSelectedObjects( bpy.types.Operator ) :
+    bl_label = ""
+    bl_idname = "scene.tmunlimiter_apply_object_settings_to_selected_objects"
+    bl_options = { "REGISTER", "UNDO" }
+    bl_description = "Apply object settings from last selected object to other selected objects"
+
+    apply_geometry: bpy.props.BoolProperty(
+        name = "Apply geometry settings",
+        default = True,
+    )
+
+    apply_collision: bpy.props.BoolProperty(
+        name = "Apply collision settings",
+        default = False,
+    )
+
+    @classmethod
+    def poll( self, context: bpy.context ) :
+        return context.active_object and len( context.selected_objects ) > 1
+
+    def execute( self, context: bpy.context ) :
+        if not self.apply_geometry and not self.apply_collision :
+            return { "CANCELLED" }
+
+        active_object = context.active_object
+
+        if not active_object :
+            return { "CANCELLED" }
+
+        selected_objects = list( filter( lambda object: object.type != "MESH" or object != active_object, context.selected_objects ) )
+
+        if len( selected_objects ) < 1 :
+            return { "CANCELLED" }
+
+        active_object_settings: TMUnlimiterObjectSettings = active_object.unlimiter_object_settings
+
+        for selected_object in selected_objects :
+            selected_object_settings: TMUnlimiterObjectSettings = selected_object.unlimiter_object_settings
+
+            if self.apply_geometry :
+                selected_object_settings.can_export_geometry = active_object_settings.can_export_geometry
+                selected_object_settings.texture_props.copy_from( active_object_settings.texture_props )
+
+            if self.apply_collision :
+                selected_object_settings.can_export_collision = active_object_settings.can_export_collision
+
+        return { "FINISHED" }
+
 class TMUnlimiterObjectSettingsPanel( bpy.types.Panel ) :
     bl_idname = "UNLIMITER_PT_object_settings"
     bl_label = "TMUnlimiter - Object settings"
@@ -215,16 +263,23 @@ class TMUnlimiterObjectSettingsPanel( bpy.types.Panel ) :
 
         if object.type == "MESH" :
             self.layout.prop( object_settings, "can_export_geometry" )
+            self.layout.prop( object_settings, "can_export_collision" )
 
             if object_settings.can_export_geometry :
                 self.draw_model_ui( object_settings )
 
-            self.layout.prop( object_settings, "can_export_collision" )
+        box = self.layout.box()
+        row = box.row()
+        row.alignment = "CENTER"
+        row.label( text = "Apply object settings to other selected objects" )
+        box.operator( TMUnlimiter_ApplyObjectSettingsToSelectedObjects.bl_idname, text = "Apply geometry settings", icon = "COPYDOWN" ).apply_collision = False
+        box.operator( TMUnlimiter_ApplyObjectSettingsToSelectedObjects.bl_idname, text = "Apply geometry and collision settings", icon = "COPYDOWN" ).apply_collision = True
 
 def __register__() :
     object_texture_props_register()
 
     bpy.utils.register_class( TMUnlimiterObjectSettings )
+    bpy.utils.register_class( TMUnlimiter_ApplyObjectSettingsToSelectedObjects )
     bpy.utils.register_class( TMUnlimiterObjectSettingsPanel )
 
     bpy.types.Object.unlimiter_object_settings = bpy.props.PointerProperty(
@@ -233,6 +288,7 @@ def __register__() :
 
 def __unregister__() :
     bpy.utils.unregister_class( TMUnlimiterObjectSettingsPanel )
+    bpy.utils.unregister_class( TMUnlimiter_ApplyObjectSettingsToSelectedObjects )
     bpy.utils.unregister_class( TMUnlimiterObjectSettings )
 
     object_texture_props_unregister()

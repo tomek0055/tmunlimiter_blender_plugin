@@ -1,7 +1,5 @@
 from .props.prop_object_settings import TMUnlimiterObjectSettings
 from .plug_visual_3d import plug_visual_3d
-from .gx_light_ball import gx_light_ball
-from .gx_light_spot import gx_light_spot
 from .plug_surface import plug_surface
 from .blender_gbx import GbxArchive
 from math import pi

@@ -36,8 +36,6 @@ def plug_tree_from_object( gbx: GbxArchive, object: bpy.types.Object ) :
         gbx.nat32( 0xffffffff )
 
     flags = 0x00004004
-    scale = object.scale.copy()
-    rotation = object.rotation_euler.copy()
     has_visual = False
     is_collidable = False
 
@@ -67,6 +65,16 @@ def plug_tree_from_object( gbx: GbxArchive, object: bpy.types.Object ) :
 
                 if valid_ref :
                     flags |= child_flags
+
+    scale = object.scale.copy()
+    scale.x = object.scale.y
+    scale.y = object.scale.z
+    scale.z = object.scale.x
+
+    rotation = object.rotation_euler.copy()
+    rotation.x = object.rotation_euler.y
+    rotation.y = object.rotation_euler.z
+    rotation.z = object.rotation_euler.x
 
     if object.type == "LIGHT" :
         light: bpy.types.Light = object.data
@@ -114,11 +122,6 @@ def plug_tree_from_object( gbx: GbxArchive, object: bpy.types.Object ) :
 
     gbx.nat32( 0x0904f01a )
     gbx.nat32( flags )
-
-    scale.y = object.scale.z
-    scale.z = object.scale.y
-    rotation.y = object.rotation_euler.z
-    rotation.z = -object.rotation_euler.y
 
     matrix = mathutils.Matrix.LocRotScale(
         None, rotation, scale

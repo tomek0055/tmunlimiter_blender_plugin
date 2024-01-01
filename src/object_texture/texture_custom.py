@@ -12,7 +12,7 @@ from .texture_props import (
     TMUnlimiterFresnelProps,
     TMUnlimiterCloudsProps,
 )
-from ..blender_gbx import GbxArchive, ExternalRef
+from ..blender_gbx import GbxArchive, FileExternalRef
 from pathlib import PureWindowsPath
 import bpy
 
@@ -227,7 +227,7 @@ class TMUnlimiterObjectTextureCustom( bpy.types.PropertyGroup ) :
             gbx.nat32( 0x09079007 )
             gbx.mw_ref( plug_material_custom )
             gbx.nat32( 0x0907900d )
-            gbx.external_ref( ( "Techno2", "Media", "Material" ), ExternalRef( "TDiff_Spec_Nrm TOcc CSpecSoft.Material.Gbx" ) )
+            gbx.external_ref( FileExternalRef( ( "Techno2", "Media", "Material", "TDiff_Spec_Nrm TOcc CSpecSoft.Material.Gbx" ) ) )
             gbx.nat32( 0xfacade01 )
 
         gbx.mw_ref( plug_material )

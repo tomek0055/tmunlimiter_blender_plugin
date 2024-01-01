@@ -7,7 +7,7 @@ from .game_materials.coast import MATERIALS_COAST
 from .game_materials.rally import MATERIALS_RALLY
 from .game_materials.speed import MATERIALS_SPEED
 from .game_materials.bay import MATERIALS_BAY
-from ..blender_gbx import GbxArchive, ExternalRef
+from ..blender_gbx import GbxArchive, FileExternalRef
 import bpy
 
 class TMUnlimiterObjectTextureGame( bpy.types.PropertyGroup ) :
@@ -72,4 +72,4 @@ class TMUnlimiterObjectTextureGame( bpy.types.PropertyGroup ) :
         self.game_material = texture_game.game_material
 
     def archive( self, gbx: GbxArchive ) :
-        gbx.external_ref( ( self.environment, "Media", "Material" ), ExternalRef( self.game_material ) )
+        gbx.external_ref( FileExternalRef( ( self.environment, "Media", "Material", self.game_material ) ) )

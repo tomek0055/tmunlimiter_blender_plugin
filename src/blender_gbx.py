@@ -87,49 +87,92 @@ class HeaderChunk( GbxContainer ) :
         self.is_heavy = is_heavy
         self.header_chunk_id = header_chunk_id
 
+class FolderRef :
+
+    def __init__( self ) :
+        self.subfolders: dict[str, FolderRef] = {}
+
+    def to_list( self, folders: list ) :
+        folders.append( self )
+
+        for subfolder_name in self.subfolders :
+            self.subfolders[ subfolder_name ].to_list( folders )
+
+    def archive( self, buffer: BytesIO, folder_name: str | None ) :
+        if folder_name :
+            string( buffer, folder_name )
+
+        nat32( buffer, len( self.subfolders ) )
+
+        for subfolder_name in self.subfolders :
+            self.subfolders[ subfolder_name ].archive( buffer, subfolder_name )
+
 class ExternalRef :
 
-    def __init__( self, file_name: str, use_fid = False ) :
-        self.use_fid = use_fid
-        self.file_name = file_name
-    
+    def __init__( self, use_fid = False ) :
+        self.use_fid = int( use_fid )
+
+    def find_or_add_folder( self, root_folder: FolderRef ) -> FolderRef :
+        return root_folder
+
+    def archive( self, buffer: BytesIO, instance_index: int, folder_index: int ) :
+        raise Exception( "Not implemented" )
+
+class FileExternalRef( ExternalRef ) :
+
+    def __init__( self, file_path: str | list[str] | tuple[str], use_fid = False ) :
+        if len( file_path ) < 1 :
+            raise Exception( "File path is empty" )
+
+        ExternalRef.__init__( self, use_fid )
+
+        if type( file_path ) is str :
+            self.file_name = file_path
+            self.file_path = tuple()
+        else :
+            self.file_name = file_path[ -1 ]
+            self.file_path = tuple( file_path[ 0 : -1 ] )
+
+    def find_or_add_folder( self, root_folder: FolderRef ) -> FolderRef :
+        current_ref_folder = root_folder
+
+        for path_part in self.file_path :
+            if path_part not in current_ref_folder.subfolders :
+                current_ref_folder.subfolders[ path_part ] = FolderRef()
+
+            current_ref_folder = current_ref_folder.subfolders[ path_part ]
+
+        return root_folder
+
     def archive( self, buffer: BytesIO, instance_index: int, folder_index: int ) :
         nat32( buffer, 1 ) # flags
         string( buffer, self.file_name )
         nat32( buffer, instance_index )
-        nat32( buffer, int( self.use_fid ) )
+        nat32( buffer, self.use_fid )
         nat32( buffer, folder_index )
 
+class ResourceExternalRef( ExternalRef ) :
+
+    def __init__( self, resource_index: int, use_fid = False ) :
+        ExternalRef.__init__( self, use_fid )
+        self.resource_index = resource_index
+
+    def archive( self, buffer: BytesIO, instance_index: int, folder_index: int ) :
+        nat32( buffer, 5 ) # flags
+        nat32( buffer, self.resource_index )
+        nat32( buffer, instance_index )
+        nat32( buffer, self.use_fid )
+
 class GbxArchive( GbxContainer ) :
-
-    class FolderRef :
-
-        def __init__( self ) :
-            self.subfolders: dict[str, GbxArchive.FolderRef] = {}
-
-        def to_list( self, folders: list ) :
-            folders.append( self )
-
-            for subfolder_name in self.subfolders :
-                self.subfolders[ subfolder_name ].to_list( folders )
-
-        def archive( self, buffer: BytesIO, folder_name: str | None ) :
-            if folder_name :
-                string( buffer, folder_name )
-
-            nat32( buffer, len( self.subfolders ) )
-
-            for subfolder_name in self.subfolders :
-                self.subfolders[ subfolder_name ].archive( buffer, subfolder_name )
 
     def __init__( self, class_id: int, validators: dict[str, Callable[[Any], bool]] = {}, ancestor_level = 0 ) :
         GbxContainer.__init__( self )
 
         self.__instances = 0
         self.__validators = validators
-        self.__root_folder = GbxArchive.FolderRef()
+        self.__root_folder = FolderRef()
         self.__header_chunks: list[HeaderChunk] = []
-        self.__external_refs: list[tuple[ExternalRef, GbxArchive.FolderRef, int]] = []
+        self.__external_refs: list[tuple[ExternalRef, FolderRef, int]] = []
 
         self.class_id = class_id
         self.ancestor_level = ancestor_level
@@ -145,18 +188,8 @@ class GbxArchive( GbxContainer ) :
     def header_chunk( self, header_chunk: HeaderChunk ) :
         self.__header_chunks.append( header_chunk )
 
-    def external_ref( self, path: list[str] | tuple[str], external_ref: ExternalRef ) :
-        current_ref_folder = self.__root_folder
-
-        for path_part in path :
-            if path_part not in current_ref_folder.subfolders :
-                current_ref_folder.subfolders[ path_part ] = GbxArchive.FolderRef()
-
-            current_ref_folder = current_ref_folder.subfolders[ path_part ]
-
-        self.__external_refs.append(
-            ( external_ref, current_ref_folder, self.add_instance() )
-        )
+    def external_ref( self, external_ref: ExternalRef ) :
+        self.__external_refs.append( ( external_ref, external_ref.find_or_add_folder( self.__root_folder ), self.add_instance() ) )
 
     def mw_ref( self, function, *function_args, **function_kwargs ) :
         valid_ref = \
@@ -219,7 +252,7 @@ class GbxArchive( GbxContainer ) :
 
             self.__root_folder.archive( header, None )
 
-            ref_folders_flat: list[GbxArchive.FolderRef] = []
+            ref_folders_flat: list[FolderRef] = []
             self.__root_folder.to_list( ref_folders_flat )
 
             for external_ref, ref_folder, instance_index in self.__external_refs :

@@ -4,7 +4,7 @@ import bpy
 
 class TMUnlimiter_Variation( bpy.types.PropertyGroup ) :
     def poll_object( self, object: bpy.types.Object ) :
-        if object.type in { "MESH", "LIGHT" } :
+        if object.type == "MESH" : 
             return True
 
         child_objects = object.children

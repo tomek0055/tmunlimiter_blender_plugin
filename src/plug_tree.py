@@ -1,4 +1,5 @@
 from .props.prop_object_settings import TMUnlimiterObjectSettings
+from .props.prop_light_settings import TMUnlimiter_LightSettings
 from .plug_visual_3d import plug_visual_3d
 from .plug_surface import plug_surface
 from .blender_gbx import GbxArchive
@@ -77,17 +78,24 @@ def plug_tree_from_object( gbx: GbxArchive, object: bpy.types.Object ) :
     rotation.z = object.rotation_euler.x
 
     if object.type == "LIGHT" :
-        light: bpy.types.Light = object.data
+        gbx.nat32( 0x09062004 )
 
-        if light.type == "POINT" :
-            func = gx_light_ball
-        elif light.type == "SPOT" :
-            func = gx_light_spot
+        def plug_light( gbx: GbxArchive, object: bpy.types.Object ) :
+            gbx.nat32( 0x0901d000 )
+            gbx.nat32( 0x0901d002 )
+            gbx.mw_ref( TMUnlimiter_LightSettings.archive, object.data )
+            gbx.nat32( 0xffffffff )
+            gbx.nat32( 0xffffffff )
+            gbx.nat32( 0xffffffff )
+            gbx.nat32( 1 )
+            gbx.nat32( 0xfacade01 )
+
+        gbx.mw_ref( plug_light, object )
+
+        if object.data.type == "SPOT" :
             rotation.x += pi / 2
 
-        gbx.nat32( 0x09062001 )
-        gbx.mw_ref( func, light )
-        gbx.nat32( 0xffffffff )
+        flags |= 0x00000608
     elif object.type == "MESH" :
         gbx.nat32( 0x0904f014 )
 

@@ -7,14 +7,19 @@ bl_info = {
     "support" : "COMMUNITY",
 }
 
-from .props.prop_material_collision import (
-    __register__ as material_collision_register,
-    __unregister__ as material_collision_unregister,
+from .props.prop_light_settings import (
+    __register__ as light_settings_register,
+    __unregister__ as light_settings_unregister,
 )
 
 from .props.prop_object_settings import (
     __register__ as object_settings_register,
     __unregister__ as object_settings_unregister,
+)
+
+from .props.prop_material_collision import (
+    __register__ as material_collision_register,
+    __unregister__ as material_collision_unregister,
 )
 
 from .props.block_definitions_panel import (
@@ -23,14 +28,16 @@ from .props.block_definitions_panel import (
 )
 
 def register() :
+    light_settings_register()
     object_settings_register()
     material_collision_register()
     block_definitions_panel_register()
 
 def unregister() :
-    object_settings_unregister()
-    material_collision_unregister()
     block_definitions_panel_unregister()
+    material_collision_unregister()
+    object_settings_unregister()
+    light_settings_unregister()
 
 if __name__ == "__main__" :
     register()

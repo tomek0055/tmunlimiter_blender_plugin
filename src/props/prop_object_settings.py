@@ -287,6 +287,8 @@ def __register__() :
     )
 
 def __unregister__() :
+    del bpy.types.Object.unlimiter_object_settings
+
     bpy.utils.unregister_class( TMUnlimiterObjectSettingsPanel )
     bpy.utils.unregister_class( TMUnlimiter_ApplyObjectSettingsToSelectedObjects )
     bpy.utils.unregister_class( TMUnlimiterObjectSettings )

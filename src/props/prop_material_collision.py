@@ -40,5 +40,7 @@ def __register__() :
     )
 
 def __unregister__() :
+    del bpy.types.Material.unlimiter_material_collision
+
     bpy.utils.unregister_class( TMUnlimiterMaterialCollision )
     bpy.utils.unregister_class( TMUnlimiterMaterialCollisionProps )

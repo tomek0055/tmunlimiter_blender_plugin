@@ -133,9 +133,9 @@ def plug_tree_from_object( gbx: GbxArchive, object: bpy.types.Object ) :
     gbx.real( matrix[ 2 ].x )
     gbx.real( matrix[ 2 ].y )
     gbx.real( matrix[ 2 ].z )
-    gbx.real( object.location.x )
+    gbx.real( object.location.y )
     gbx.real( object.location.z )
-    gbx.real( -object.location.y )
+    gbx.real( object.location.x )
     gbx.nat32( 0xfacade01 )
 
     return flags

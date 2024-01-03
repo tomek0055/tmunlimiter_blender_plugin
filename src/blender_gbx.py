@@ -142,7 +142,7 @@ class FileExternalRef( ExternalRef ) :
 
             current_ref_folder = current_ref_folder.subfolders[ path_part ]
 
-        return root_folder
+        return current_ref_folder
 
     def archive( self, buffer: BytesIO, instance_index: int, folder_index: int ) :
         nat32( buffer, 1 ) # flags

@@ -23,13 +23,20 @@ An official plugin for Blender that allows users to create custom blocks for TMU
 You have to install ``python-lzo`` library required by the plugin.
 
 #### Linux
-Linux users can install ``python-lzo`` library using ``pip``.
+Linux users can install ``python-lzo`` library using ``pip``, either in command-line :
+```bash
+$ pip3 install python-lzo
+```
 
-Alternatively, you can install ``python-lzo`` using Blender's console by typing following code:
-
+or using Blender's python console like this :
 ```python
 import pip
 pip.main(["install", "python-lzo"])
+```
+
+If you get an `error: externally-managed-environment`, you need to install python-lzo using your system's package manager, for instance:
+```bash
+$ sudo pacman -S python-lzo
 ```
 
 #### Windows

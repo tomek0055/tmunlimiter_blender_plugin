@@ -67,8 +67,8 @@ def plug_visual_3d( gbx: GbxArchive, object: bpy.types.Object ) :
 
     del verts_data
 
-    if len( mesh.verts ) > 65535 :
-        raise Exception( f'Object "{ object.name }" exceeds 65535 vertices' )
+    if len( mesh.verts ) > 65536 :
+        raise Exception( f'Object "{ object.name }" exceeds 65536 vertices' )
 
 # 09-01E-000 -- Start
     gbx.nat32( 0x0901E000 )

@@ -105,7 +105,7 @@ class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
 
             if len( variants.ground_variations ) > 64 :
                 return ( False, f'Variant "{ variant_title }" exceeds maximum number of ground variations (64)' )
-            
+
             for ground_variation in variants.ground_variations :
                 validation_result = self.__validate_variation__( ground_variation )
 
@@ -142,10 +142,11 @@ class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
         if not validation_result :
             raise Exception( validation_message )
 
-        header_chunk = HeaderChunk( 0x3f002000 )
+        header_chunk = HeaderChunk( 0x3f_002_001 )
         header_chunk.mw_id( self.identifier )
         header_chunk.mw_id( self.author )
         header_chunk.nat64( int( datetime.now( timezone.utc ).timestamp() * 1000 ) )
+        header_chunk.nat8( int( self.backward_compatibility_enabled ) )
         gbx.header_chunk( header_chunk )
 
         gbx.context[ "objects_data" ] = {}
@@ -176,14 +177,17 @@ class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
 
         available_variants = self.get_available_variants( None )
 
-        for variant_id, __variant_title__, __variant_description__ in available_variants :
-            variants = self.path_resolve( f"variants_{ self.block_type }_{ variant_id }" )
+        if self.backward_compatibility_enabled :
+            archive_object( self.backward_compatibility_model )
+        else:
+            for variant_id, __variant_title__, __variant_description__ in available_variants :
+                variants = self.path_resolve( f"variants_{ self.block_type }_{ variant_id }" )
 
-            for ground_variation in variants.ground_variations :
-                archive_variation( ground_variation )
+                for ground_variation in variants.ground_variations :
+                    archive_variation( ground_variation )
 
-            for air_variation in variants.air_variations :
-                archive_variation( air_variation )
+                for air_variation in variants.air_variations :
+                    archive_variation( air_variation )
 
         # Replacement texture archivization
         replacement_texture_flags = 0
@@ -213,7 +217,9 @@ class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
             gbx.nat8( int( custom_texture_tuple[ 2 ] ) ) # texture.addressing
 
         # Waypoint type archivization
-        if self.waypoint_type == "start" :
+        if self.backward_compatibility_enabled :
+            gbx.nat8( 3 )
+        elif self.waypoint_type == "start" :
             gbx.nat8( 0 )
         elif self.waypoint_type == "finish" :
             gbx.nat8( 1 )
@@ -227,7 +233,9 @@ class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
             raise Exception( f'Unknown waypoint type "{ self.waypoint_type }"' )
 
         # Block type archivization
-        if self.block_type == "classic" :
+        if self.backward_compatibility_enabled :
+            gbx.nat8( 2 )
+        elif self.block_type == "classic" :
             gbx.nat8( 2 )
         elif self.block_type == "road" :
             gbx.nat8( 3 )
@@ -247,20 +255,23 @@ class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
                 gbx.context[ "archived_objects" ].add( object )
                 gbx.data( plug_tree_data )
 
-        def archive_variations_from_gbx_context( variations ) :
-            gbx.nat8( len( variations ) )
+        if self.backward_compatibility_enabled :
+            archive_variation_from_gbx_context( self.backward_compatibility_model )
+        else :
+            def archive_variations_from_gbx_context( variations ) :
+                gbx.nat8( len( variations ) )
 
-            for variation in variations :
-                archive_variation_from_gbx_context( variation.model )
+                for variation in variations :
+                    archive_variation_from_gbx_context( variation.model )
 
-                if self.is_trigger_allowed() :
-                    archive_variation_from_gbx_context( variation.trigger )
+                    if self.is_trigger_allowed() :
+                        archive_variation_from_gbx_context( variation.trigger )
 
-        for variant_id, __variant_title__, __variant_description__ in available_variants :
-            variants = self.path_resolve( f"variants_{ self.block_type }_{ variant_id }" )
+            for variant_id, __variant_title__, __variant_description__ in available_variants :
+                variants = self.path_resolve( f"variants_{ self.block_type }_{ variant_id }" )
 
-            archive_variations_from_gbx_context( variants.ground_variations )
-            archive_variations_from_gbx_context( variants.air_variations )
+                archive_variations_from_gbx_context( variants.ground_variations )
+                archive_variations_from_gbx_context( variants.air_variations )
 
         # Spawn location
         def write_spawn_location( object: bpy.types.Object ) :
@@ -279,8 +290,11 @@ class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
                 gbx.real( object.rotation_euler.z )
                 gbx.real( object.rotation_euler.x )
 
-        write_spawn_location( self.ground_spawn_location_object )
-        write_spawn_location( self.air_spawn_location_object )
+        if self.backward_compatibility_enabled :
+            write_spawn_location( self.backward_compatibility_spawn_location_object )
+        else :
+            write_spawn_location( self.ground_spawn_location_object )
+            write_spawn_location( self.air_spawn_location_object )
 
         # Finalize archivization
         chunk_buffer = gbx.attach_buffer( root_buffer ).getvalue()
@@ -312,3 +326,7 @@ class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
 
     ground_spawn_location_object: bpy.props.PointerProperty( name = "Ground spawn location", type = bpy.types.Object, poll = poll_suitable_location_object )
     air_spawn_location_object: bpy.props.PointerProperty( name = "Air spawn location", type = bpy.types.Object, poll = poll_suitable_location_object )
+
+    backward_compatibility_enabled: bpy.props.BoolProperty( name = "Backward compatible", default = False )
+    backward_compatibility_model: bpy.props.PointerProperty( name = "Model", type = bpy.types.Object, poll = TMUnlimiter_Variation.poll_object )
+    backward_compatibility_spawn_location_object: bpy.props.PointerProperty( name = "Spawn location", type = bpy.types.Object, poll = poll_suitable_location_object )

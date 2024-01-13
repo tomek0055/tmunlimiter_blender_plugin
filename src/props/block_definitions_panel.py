@@ -222,68 +222,73 @@ class TMUnlimiter_BlockDefinitionsPanel( bpy.types.Panel ) :
             layout.label( text = validation_message, icon = "ERROR" )
             layout.alert = False
 
-        layout.prop( block_definition, "block_type" )
-        layout.prop( block_definition, "waypoint_type" )
+        if block_definition.backward_compatibility_enabled :
+            layout.prop( block_definition, "backward_compatibility_model" )
+            layout.prop( block_definition, "backward_compatibility_spawn_location_object" )
+        else :
+            layout.prop( block_definition, "block_type" )
+            layout.prop( block_definition, "waypoint_type" )
 
-        box = layout.box()
-        row = box.row()
-        row.alignment = "CENTER"
-        row.label( text = "Variants" )
+            box = layout.box()
+            row = box.row()
+            row.alignment = "CENTER"
+            row.label( text = "Variants" )
 
-        validation_result, validation_message = block_definition.validate_variants()
-
-        box.alert = not validation_result
-        box.prop( block_definition, "selected_variant" )
-
-        if box.alert :
-            box.label( text = validation_message, icon = "ERROR" )
-            box.alert = False
-
-        row = box.row()
-        row.prop( block_definition, "selected_variant_type", expand = True )
-
-        selected_variants = block_definition.get_selected_variants()
-
-        row = box.row()
-        row.template_list(
-            TMUnlimiter_VariationItem.bl_idname,
-            "variation",
-            selected_variants, f"{ block_definition.selected_variant_type }_variations",
-            selected_variants, "selected_variation_index"
-        )
-        col = row.column()
-        col.operator( TMUnlimiter_AddVariation.bl_idname, text = "", icon = "ADD" )
-        col.operator( TMUnlimiter_RemoveVariation.bl_idname, text = "", icon = "REMOVE" )
-
-        selected_variation = block_definition.get_selected_variation( selected_variants )
-
-        if selected_variation :
-            box.prop( selected_variation, "name" )
-
-            if block_definition.is_trigger_allowed() :
-                validation_result, validation_message = selected_variation.validate_model()
-            else :
-                validation_result, validation_message = ( True, None )
+            validation_result, validation_message = block_definition.validate_variants()
 
             box.alert = not validation_result
-            box.prop( selected_variation, "model" )
+            box.prop( block_definition, "selected_variant" )
 
             if box.alert :
                 box.label( text = validation_message, icon = "ERROR" )
+                box.alert = False
 
-            if block_definition.is_trigger_allowed() :
-                validation_result, validation_message = selected_variation.validate_trigger()
+            row = box.row()
+            row.prop( block_definition, "selected_variant_type", expand = True )
+
+            selected_variants = block_definition.get_selected_variants()
+
+            row = box.row()
+            row.template_list(
+                TMUnlimiter_VariationItem.bl_idname,
+                "variation",
+                selected_variants, f"{ block_definition.selected_variant_type }_variations",
+                selected_variants, "selected_variation_index"
+            )
+            col = row.column()
+            col.operator( TMUnlimiter_AddVariation.bl_idname, text = "", icon = "ADD" )
+            col.operator( TMUnlimiter_RemoveVariation.bl_idname, text = "", icon = "REMOVE" )
+
+            selected_variation = block_definition.get_selected_variation( selected_variants )
+
+            if selected_variation :
+                box.prop( selected_variation, "name" )
+
+                if block_definition.is_trigger_allowed() :
+                    validation_result, validation_message = selected_variation.validate_model()
+                else :
+                    validation_result, validation_message = ( True, None )
 
                 box.alert = not validation_result
-                box.prop( selected_variation, "trigger" )
+                box.prop( selected_variation, "model" )
 
                 if box.alert :
                     box.label( text = validation_message, icon = "ERROR" )
 
-        layout.prop( block_definition, "ground_spawn_location_object" )
-        layout.prop( block_definition, "air_spawn_location_object" )
+                if block_definition.is_trigger_allowed() :
+                    validation_result, validation_message = selected_variation.validate_trigger()
+
+                    box.alert = not validation_result
+                    box.prop( selected_variation, "trigger" )
+
+                    if box.alert :
+                        box.label( text = validation_message, icon = "ERROR" )
+
+            layout.prop( block_definition, "ground_spawn_location_object" )
+            layout.prop( block_definition, "air_spawn_location_object" )
 
         layout.separator()
+        layout.prop( block_definition, "backward_compatibility_enabled" )
         layout.operator( TMUnlimiter_ExportBlockDefinition.bl_idname, text = "Export block definition", icon = "EXPORT" )
 
 def __register__() :

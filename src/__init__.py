@@ -1,7 +1,7 @@
 bl_info = {
     "name" : "TrackMania Unlimiter: Custom Block exporter",
     "author": "Tomek0055",
-    "version" : (1, 1, 1),
+    "version" : (1, 2, 0),
     "blender" : (4, 0, 0),
     "doc_url" : "https://github.com/tomek0055/tmunlimiter_blender_plugin",
     "support" : "COMMUNITY",

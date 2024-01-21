@@ -2,23 +2,23 @@ from __future__ import annotations
 
 import bpy
 
-class TMUnlimiter_Variation( bpy.types.PropertyGroup ) :
-    def poll_object( self, object: bpy.types.Object ) :
-        if object.type == "MESH" :
-            return True
-        elif object.type == "EMPTY" :
-            pass
-        else:
-            return False
-
-        child_objects = object.children
-
-        for child_object in child_objects :
-            if self.poll_object( child_object ) :
-                return True
-
+def poll_object( self, object: bpy.types.Object ) :
+    if object.type == "MESH" :
+        return True
+    elif object.type == "EMPTY" :
+        pass
+    else:
         return False
 
+    child_objects = object.children
+
+    for child_object in child_objects :
+        if poll_object( self, child_object ) :
+            return True
+
+    return False
+
+class TMUnlimiter_Variation( bpy.types.PropertyGroup ) :
     name: bpy.props.StringProperty( name = "Variation Name" )
     model: bpy.props.PointerProperty( name = "Model", type = bpy.types.Object, poll = poll_object )
     trigger: bpy.props.PointerProperty( name = "Trigger", type = bpy.types.Object, poll = poll_object )

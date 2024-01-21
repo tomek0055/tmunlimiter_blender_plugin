@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from .blender_gbx import GbxArchive, HeaderChunk
 from .plug_tree import plug_tree_from_object
 
-from .variation import TMUnlimiter_Variation
+from .variation import TMUnlimiter_Variation, poll_object
 from .variants import TMUnlimiter_Variants
 
 import bpy
@@ -328,5 +328,5 @@ class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
     air_spawn_location_object: bpy.props.PointerProperty( name = "Air spawn location", type = bpy.types.Object, poll = poll_suitable_location_object )
 
     backward_compatibility_enabled: bpy.props.BoolProperty( name = "Backward compatible", default = False )
-    backward_compatibility_model: bpy.props.PointerProperty( name = "Model", type = bpy.types.Object, poll = TMUnlimiter_Variation.poll_object )
+    backward_compatibility_model: bpy.props.PointerProperty( name = "Model", type = bpy.types.Object, poll = poll_object )
     backward_compatibility_spawn_location_object: bpy.props.PointerProperty( name = "Spawn location", type = bpy.types.Object, poll = poll_suitable_location_object )

@@ -28,7 +28,7 @@ class TMUnlimiterTextureProps( bpy.types.PropertyGroup ) :
             ( "2", "Clamp", "Clamp" ),
             ( "3", "BorderSM3", "BorderSM3" ),
         ],
-        default = "2",
+        default = "0",
     )
 
     def copy_from( self, texture_props: TMUnlimiterTextureProps ) :

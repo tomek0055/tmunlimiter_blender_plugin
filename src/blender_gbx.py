@@ -1,5 +1,6 @@
 from typing import Any, Callable
 from io import BytesIO
+import typing
 import struct
 import lzo
 
@@ -59,7 +60,16 @@ class GbxContainer :
     def data( self, value: BytesIO ) :
         data( self.buffer, value )
 
-    def mw_id( self, mw_id = "" ) :
+    def mw_id( self, mw_id = "", mw_id_type: typing.Literal["local", "uuid", "index"] = "local" ) :
+        if mw_id_type == "local" :
+            id_type = 0x40000000
+        elif mw_id_type == "uuid" :
+            id_type = 0x80000000
+        elif mw_id_type == "index":
+            id_type = 0x00000000
+        else :
+            raise Exception( f'Unknown MwId type: "{ mw_id_type }"' )
+
         if self.mw_ids is None :
             self.mw_ids = []
             self.nat32( 0x00000003 )
@@ -67,10 +77,10 @@ class GbxContainer :
         if len( mw_id ) == 0 :
             self.nat32( 0xFFFFFFFF )
         elif mw_id in self.mw_ids :
-            self.nat32( 0x40000001 + self.mw_ids.index( mw_id ) )
+            self.nat32( id_type + 1 + self.mw_ids.index( mw_id ) )
         else :
             self.mw_ids.append( mw_id )
-            self.nat32( 0x40000000 )
+            self.nat32( id_type )
             self.string( mw_id )
 
     def attach_buffer( self, new_buffer: BytesIO ) -> BytesIO :

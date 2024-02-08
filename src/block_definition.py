@@ -81,8 +81,8 @@ class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
         if not self.author :
             return ( False, "Block author field is empty" )
 
-        if self.author == "Nadeo" :
-            return ( False, 'Block author cannot be "Nadeo"' )
+        if self.author == "Nadeo" or self.author == "nadeo" :
+            return ( False, 'Block author cannot be "Nadeo" or "nadeo"' )
 
         return ( True, None )
 

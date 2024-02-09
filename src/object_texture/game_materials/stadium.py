@@ -1,4 +1,5 @@
-MATERIALS_STADIUM = [
+MATERIALS_STADIUM = \
+[
     ( "StadiumAirship.Material.Gbx", [ [ [ "Diffuse", [ "StadiumAirshipD.dds", "Image", "Texture", "Media", "Stadium" ] ], [ "Occlusion", [ "StadiumAirshipO.dds", "Image", "Texture", "Media", "Stadium" ] ] ], [ [ "Specular", [ "StadiumAirshipS.dds", "Image", "Texture", "Media", "Stadium" ] ], [ "Normal", [ "StadiumAirshipN.dds", "Image", "Texture", "Media", "Stadium" ] ] ] ] ),
     ( "StadiumCircuit.Material.Gbx", [ [ [ "Diffuse", [ "StadiumCircuitD.dds", "Image", "Texture", "Media", "Stadium" ] ], [ "Specular", [ "StadiumCircuitS.dds", "Image", "Texture", "Media", "Stadium" ] ], [ "Normal", [ "StadiumCircuitN.dds", "Image", "Texture", "Media", "Stadium" ] ] ], [ [ "Occlusion", [ "StadiumFabricO.dds", "Image", "Texture", "Media", "Stadium" ] ] ] ] ),
     ( "StadiumCircuitLogo.Material.Gbx", [ [ [ "Diffuse", [ "StadiumCircuitLogoD.dds", "Image", "Texture", "Media", "Stadium" ] ], [ "Specular", [ "StadiumCircuitLogoS.dds", "Image", "Texture", "Media", "Stadium" ] ], [ "Normal", [ "StadiumWarpPub8X1N.dds", "Image", "Texture", "Media", "Stadium" ] ] ], [ [ "Occlusion", [ "StadiumFabricO.dds", "Image", "Texture", "Media", "Stadium" ] ] ] ] ),

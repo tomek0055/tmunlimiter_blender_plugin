@@ -11,7 +11,8 @@ class TMUnlimiterTextureProps( bpy.types.PropertyGroup ) :
 
     filtering: bpy.props.EnumProperty(
         name = "Texture filtering",
-        items = [
+        items = \
+        [
             ( "0", "Point", "Point" ),
             ( "1", "Bilinear", "Bilinear" ),
             ( "2", "Trilinear", "Trilinear" ),
@@ -22,7 +23,8 @@ class TMUnlimiterTextureProps( bpy.types.PropertyGroup ) :
 
     addressing: bpy.props.EnumProperty(
         name = "Texture addressing",
-        items = [
+        items = \
+        [
             ( "0", "Wrap", "Wrap" ),
             ( "1", "Mirror", "Mirror" ),
             ( "2", "Clamp", "Clamp" ),

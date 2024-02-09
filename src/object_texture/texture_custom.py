@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from .texture_props import (
+from .texture_props import \
+(
     TMUnlimiterTextureProps,
     TMUnlimiterDiffuseProps,
     TMUnlimiterSpecularProps,
@@ -142,10 +143,7 @@ class TMUnlimiterObjectTextureCustom( bpy.types.PropertyGroup ) :
                 raise Exception( f'Provided file path "{ texture.filepath }" for { texture.get_texture_type().lower() } texture does not have any file name' )
 
             custom_texture_references = gbx.context[ "custom_texture_references" ]
-
-            custom_texture_tuple = (
-                str( texture_filepath ), texture.filtering, texture.addressing
-            )
+            custom_texture_tuple = ( str( texture_filepath ), texture.filtering, texture.addressing )
 
             if custom_texture_tuple not in custom_texture_references :
                 custom_texture_references[ custom_texture_tuple ] = gbx.add_instance( write = False )

@@ -1,4 +1,5 @@
-MATERIALS_RALLY = [
+MATERIALS_RALLY = \
+[
     ( "DirtyRoad.Material.Gbx", [ [ [ "Diffuse", [ "DirtyRoadDiffuse.dds", "Image", "Texture", "Media", "Rally" ] ] ] ] ),
     ( "RallyAdvertising.Material.Gbx", [ [ [ "Diffuse", [ "Advertisement.dds", "Image", "Texture", "Media", "Interface" ] ] ] ] ),
     ( "RallyCastle.Material.Gbx", [ [ [ "Diffuse", [ "RallyCastle.dds", "Image", "Texture", "Media", "Rally" ] ] ] ] ),

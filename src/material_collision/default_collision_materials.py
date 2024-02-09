@@ -1,4 +1,5 @@
-DEFAULT_COLLISION_MATERIALS = [
+DEFAULT_COLLISION_MATERIALS = \
+[
     ( "0", "#01: Concrete", "#01: Concrete" ),
     ( "1", "#02: Pavement", "#02: Pavement" ),
     ( "2", "#03: Grass", "#03: Grass" ),

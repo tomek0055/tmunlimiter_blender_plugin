@@ -14,7 +14,8 @@ class TMUnlimiterObjectTextureGame( bpy.types.PropertyGroup ) :
 
     environment: bpy.props.EnumProperty(
         name = "Environment",
-        items = [
+        items = \
+        [
             ( "Speed", "Desert", "Desert (Speed) environment" ),
             ( "Rally", "Rally", "Rally environment" ),
             ( "Alpine", "Snow", "Snow (Alpine) environment" ),

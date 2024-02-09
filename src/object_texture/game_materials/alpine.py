@@ -1,4 +1,5 @@
-MATERIALS_ALPINE = [
+MATERIALS_ALPINE = \
+[
     ( "AlpineAdvertising.Material.Gbx", [ [ [ "Diffuse", [ "Advertisement.dds", "Image", "Texture", "Media", "Interface" ] ] ] ] ),
     ( "AlpineAsphalt.Material.Gbx", [ [ [ "Diffuse", [ "AlpineAsphaltDiffuse.dds", "Image", "Texture", "Media", "Alpine" ] ] ] ] ),
     ( "AlpineAsphaltFreeWheeling.Material.Gbx", [ [ [ "Diffuse", [ "AlpineAsphaltFreeWheeling.dds", "Image", "Texture", "Media", "Alpine" ] ] ] ] ),

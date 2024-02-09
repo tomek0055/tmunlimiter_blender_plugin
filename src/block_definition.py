@@ -9,12 +9,14 @@ from .variants import TMUnlimiter_Variants
 import bpy
 
 class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
-    __BLOCK_TYPES__ = [
+    __BLOCK_TYPES__ = \
+    [
         ( "classic", "Classic", "Classic block type" ),
         ( "road", "Road", "Road block type" )
     ]
 
-    __WAYPOINT_TYPES__ = [
+    __WAYPOINT_TYPES__ = \
+    [
         ( "none", "None", "Block does not act as a waypoint" ),
         ( "start", "Start", "Block is a start" ),
         ( "checkpoint", "Checkpoint", "Block is a checkpoint" ),
@@ -24,11 +26,13 @@ class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
 
     def get_available_variants( self, __context__: bpy.context ) :
         if self.block_type == "classic" :
-            return [
+            return \
+            [
                 ( "default", "Default", "Default variant" )
             ]
         elif self.block_type == "road" :
-            return [
+            return \
+            [
                 ( "piece", "Single piece", "Single road piece, not connected to any road or block" ),
                 ( "deadend", "Deadend", "Deadend" ),
                 ( "turn", "Turn", "Turn" ),

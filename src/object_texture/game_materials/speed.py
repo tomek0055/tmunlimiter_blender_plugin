@@ -1,4 +1,5 @@
-MATERIALS_SPEED = [
+MATERIALS_SPEED = \
+[
     ( "SpeedAdvertising.Material.Gbx", [ [ [ "Diffuse", [ "Advertisement.dds", "Image", "Texture", "Media", "Interface" ] ] ] ] ),
     ( "SpeedAnimatedTrafficLight.Material.Gbx", [ [ [ "Diffuse", [ "SpeedTrafficLightDiffuse.dds", "Image", "Texture", "Media", "Speed" ] ], [ "Glow", [ "SpeedTrafficLightGlow.dds", "Image", "Texture", "Media", "Speed" ] ] ] ] ),
     ( "SpeedAsphalt.Material.Gbx", [ [ [ "Diffuse", [ "SpeedAsphalt.dds", "Image", "Texture", "Media", "Speed" ] ] ] ] ),

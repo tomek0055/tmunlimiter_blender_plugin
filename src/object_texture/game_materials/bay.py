@@ -1,4 +1,5 @@
-MATERIALS_BAY = [
+MATERIALS_BAY = \
+[
     ( "BayAdvertisement.Material.Gbx", [ [ [ "Diffuse", [ "Advertisement.dds", "Image", "Texture", "Media", "Interface" ] ] ] ] ),
     ( "BayBridgeAlpha.Material.Gbx", [ [ [ "Diffuse", [ "BayBridgeAlpha.dds", "Image", "Texture", "Media", "Bay" ] ] ] ] ),
     ( "BayBridgePillar.Material.Gbx", [ [ [ "Diffuse", [ "BayBridgePillar.dds", "Image", "Texture", "Media", "Bay" ] ] ] ] ),

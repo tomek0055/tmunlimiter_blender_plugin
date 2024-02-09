@@ -21,7 +21,8 @@ class TMUnlimiterObjectTextureProps( bpy.types.PropertyGroup ) :
 
     texture_type: bpy.props.EnumProperty(
         name = "Texture type",
-        items = [
+        items = \
+        [
             ( "None", "No texture", "No texture" ),
             ( "Game", "Game texture", "Game provided texture" ),
             ( "Custom", "Custom texture", "User provided texture" ),

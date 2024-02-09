@@ -35,10 +35,7 @@ def plug_surface_geom_mesh( gbx: GbxArchive, object: bpy.types.Object ) -> list[
         material_index = face.material_index
 
         if not material_index in material_translation_table :
-            material_translation_table[ material_index ] = (
-                len( material_translation_table ),
-                mesh_data.materials[ material_index ],
-            )
+            material_translation_table[ material_index ] = ( len( material_translation_table ), mesh_data.materials[ material_index ] )
 
     gbx.nat32( 7 )
     gbx.nat32( 1 )

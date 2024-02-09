@@ -101,7 +101,8 @@ def plug_visual_3d( gbx: GbxArchive, object: bpy.types.Object ) :
             gbx.real( uv_tuple[ 0 + uv_tuple_offset ] )
             gbx.real( uv_tuple[ 1 + uv_tuple_offset ] )
 
-    half_diag = (
+    half_diag = \
+    (
         ( max_vert_coord[ 0 ] - min_vert_coord[ 0 ] ) / 2,
         ( max_vert_coord[ 1 ] - min_vert_coord[ 1 ] ) / 2,
         ( max_vert_coord[ 2 ] - min_vert_coord[ 2 ] ) / 2,

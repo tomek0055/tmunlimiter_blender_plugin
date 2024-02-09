@@ -1,4 +1,5 @@
-MATERIALS_ISLAND = [
+MATERIALS_ISLAND = \
+[
     ( "IslandAdvertisement.Material.Gbx", [ [ [ "Diffuse", [ "Advertisement.dds", "Image", "Texture", "Media", "Interface" ] ] ] ] ),
     ( "IslandAirportTarmac.Material.Gbx", [ [ [ "Diffuse", [ "IslandTarmac.dds", "Image", "Texture", "Media", "Island" ] ] ] ] ),
     ( "IslandAirportTarmacBorder.Material.Gbx", [ [ [ "Diffuse", [ "IslandTarmac.dds", "Image", "Texture", "Media", "Island" ] ] ] ] ),

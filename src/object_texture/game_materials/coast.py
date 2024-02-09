@@ -1,4 +1,5 @@
-MATERIALS_COAST = [
+MATERIALS_COAST = \
+[
     ( "CoastAsphalt.Material.Gbx", [ [] ] ),
     ( "CoastBoats.Material.Gbx", [ [ [ "Diffuse", [ "CoastBoats.DDS", "Image", "Texture", "Media", "Coast" ] ] ] ] ),
     ( "CoastBoatsUnderSea.Material.Gbx", [ [ [ "Diffuse", [ "CoastBoats.DDS", "Image", "Texture", "Media", "Coast" ] ] ] ] ),

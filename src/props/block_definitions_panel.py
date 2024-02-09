@@ -5,6 +5,7 @@ from ..blender_gbx import GbxArchive
 from ..block_definition import TMUnlimiter_BlockDefinition
 from ..variants import TMUnlimiter_Variants
 from ..variation import TMUnlimiter_Variation
+from ..block_unit import TMUnlimiter_BlockUnit
 
 import bpy
 
@@ -21,6 +22,46 @@ class TMUnlimiter_VariationItem( bpy.types.UIList ) :
 
     def draw_item( self, __context__: bpy.types.Context, layout: bpy.types.UILayout, __data__, variation: TMUnlimiter_Variation, __icon__, __active_data__, __active_propname__, index: int ) :
         layout.label( text = f"Variation #{ 1 + index }: { variation.name }" )
+
+class TMUnlimiter_BlockUnitItem( bpy.types.UIList ) :
+    bl_idname = "TMUNLIMITER_UL_BlockUnitItem"
+
+    def __init__( self ) :
+        self.last_item_failed_validation = False
+        super().__init__()
+
+    def draw_item( self, __context__: bpy.types.Context, layout: bpy.types.UILayout, block_definition: TMUnlimiter_BlockDefinition, block_unit: TMUnlimiter_BlockUnit, __icon__, __active_data__, __active_propname__, index: int ) :
+        if not index :
+            self.last_item_failed_validation = False
+
+        validation_result, validation_message = block_unit.validate()
+
+        if validation_result :
+            offset = block_unit.calculate_offset()
+
+        if validation_result and index > 1 and not self.last_item_failed_validation :
+            block_units = block_definition.get_selected_block_units()
+            back_index = index
+
+            while back_index :
+                back_index = back_index - 1
+                back_block_unit = block_units[ back_index ]
+                back_offset = back_block_unit.calculate_offset()
+
+                if offset == back_offset :
+                    validation_result = False
+                    validation_message = f"Block Unit #{ 1 + back_index } has the same coordinates"
+
+                    break
+        elif not validation_result :
+            self.last_item_failed_validation = True
+
+        layout.alert = not validation_result
+
+        if validation_result :
+            layout.label( text = f"Block Unit #{ 1 + index } at { '{' } { offset[ 0 ] }, { offset[ 1 ] }, { offset[ 2 ] } { '}' }", icon = "MATCUBE" )
+        else :
+            layout.label( text = f"Block Unit #{ 1 + index } ({ validation_message })", icon = "MATCUBE" )
 
 class TMUnlimiter_AddBlockDefinition( bpy.types.Operator ) :
     bl_label = "Add block definition"
@@ -70,6 +111,15 @@ class TMUnlimiter_CopyBlockDefinition( bpy.types.Operator ) :
         new_block_definition.variants_road_cross_junction.copy_from( old_block_definition.variants_road_cross_junction )
         new_block_definition.ground_spawn_location_object = old_block_definition.ground_spawn_location_object
         new_block_definition.air_spawn_location_object = old_block_definition.air_spawn_location_object
+        new_block_definition.backward_compatibility_enabled = old_block_definition.backward_compatibility_enabled
+        new_block_definition.backward_compatibility_model = old_block_definition.backward_compatibility_model
+        new_block_definition.icon = old_block_definition.icon
+
+        for ground_block_unit in old_block_definition.ground_block_units :
+            new_block_definition.ground_block_units.add().copy_from( ground_block_unit )
+
+        for air_block_unit in old_block_definition.air_block_units :
+            new_block_definition.air_block_units.add().copy_from( air_block_unit )
 
         context.scene.tmunlimiter_selected_block_definition_index = len( context.scene.tmunlimiter_block_definitions ) - 1
 
@@ -122,6 +172,62 @@ class TMUnlimiter_RemoveVariation( bpy.types.Operator ) :
 
         return { "FINISHED" }
 
+class TMUnlimiter_AddBlockUnit( bpy.types.Operator ) :
+    bl_label = "Add block unit"
+    bl_idname = "scene.tmunlimiter_add_block_unit"
+
+    def execute( self, context: bpy.context ) :
+        block_definition = get_selected_block_definition( context )
+
+        if block_definition is None :
+            return { "CANCELLED" }
+
+        block_units = block_definition.get_selected_block_units()
+        block_units.add()
+        block_definition.selected_block_unit_index = len( block_units ) - 1
+
+        return { "FINISHED" }
+
+class TMUnlimiter_RemoveBlockUnit( bpy.types.Operator ) :
+    bl_label = "Remove block unit"
+    bl_idname = "scene.tmunlimiter_remove_block_unit"
+
+    def execute( self, context: bpy.context ) :
+        block_definition = get_selected_block_definition( context )
+
+        if block_definition is None :
+            return { "CANCELLED" }
+
+        block_units = block_definition.get_selected_block_units()
+        block_units.remove( block_definition.selected_block_unit_index )
+
+        if block_definition.selected_block_unit_index > 0 :
+            block_definition.selected_block_unit_index = block_definition.selected_block_unit_index - 1
+
+        return { "FINISHED" }
+
+class TMUnlimiter_CopyAllBlockUnitsToSecondType( bpy.types.Operator ) :
+    bl_label = "Copy all block units to second type"
+    bl_idname = "scene.tmunlimiter_copy_units_to_second_type"
+
+    def execute( self, context: bpy.context ) :
+        block_definition = get_selected_block_definition( context )
+
+        if block_definition is None :
+            return { "CANCELLED" }
+
+        source_block_units = block_definition.get_selected_block_units()
+
+        if block_definition.selected_block_unit_type == "ground" :
+            destination_block_units = block_definition.air_block_units
+        else :
+            destination_block_units = block_definition.ground_block_units
+
+        for soruce_block_unit in source_block_units :
+            destination_block_units.add().copy_from( soruce_block_unit )
+
+        return { "FINISHED" }
+
 class TMUnlimiter_ExportBlockDefinition( bpy.types.Operator, ExportHelper ) :
     """Save selected block definition to a *.Block.Gbx file. To enable export, switch to the object mode"""
 
@@ -144,7 +250,18 @@ class TMUnlimiter_ExportBlockDefinition( bpy.types.Operator, ExportHelper ) :
         if not block_definition :
             return False
 
-        return block_definition.validate_identifier()[ 0 ] and block_definition.validate_author()[ 0 ] and block_definition.validate_variants()[ 0 ]
+        return \
+        (
+            block_definition.validate_identifier()[ 0 ]
+            and
+            block_definition.validate_author()[ 0 ]
+            and
+            block_definition.validate_variants()[ 0 ]
+            and
+            block_definition.validate_icon()[ 0 ]
+            and
+            block_definition.validate_block_units()[ 0 ]
+        )
 
     def invoke( self, context: bpy.context, _ ) :
         if not self.filepath :
@@ -199,7 +316,7 @@ class TMUnlimiter_BlockDefinitionsPanel( bpy.types.Panel ) :
         row = layout.row()
         row.operator( TMUnlimiter_CopyBlockDefinition.bl_idname, icon = "COPY_ID" )
 
-        block_definition = block_definition = get_selected_block_definition( context )
+        block_definition = get_selected_block_definition( context )
 
         if block_definition is None:
             row.enabled = False
@@ -222,76 +339,116 @@ class TMUnlimiter_BlockDefinitionsPanel( bpy.types.Panel ) :
             layout.label( text = validation_message, icon = "ERROR" )
             layout.alert = False
 
-        if block_definition.backward_compatibility_enabled :
-            layout.prop( block_definition, "backward_compatibility_model" )
-            layout.prop( block_definition, "backward_compatibility_spawn_location_object" )
-        else :
-            layout.prop( block_definition, "block_type" )
-            layout.prop( block_definition, "waypoint_type" )
+        layout.prop( block_definition, "block_type" )
+        layout.prop( block_definition, "waypoint_type" )
 
-            box = layout.box()
-            row = box.row()
-            row.alignment = "CENTER"
-            row.label( text = "Variants" )
+        box = layout.box()
+        row = box.row()
+        row.alignment = "CENTER"
+        row.label( text = "Variants" )
 
-            validation_result, validation_message = block_definition.validate_variants()
+        validation_result, validation_message = block_definition.validate_variants()
+
+        box.alert = not validation_result
+        box.prop( block_definition, "selected_variant" )
+
+        if box.alert :
+            box.label( text = validation_message, icon = "ERROR" )
+            box.alert = False
+
+        row = box.row()
+        row.prop( block_definition, "selected_variant_type", expand = True )
+
+        selected_variants = block_definition.get_selected_variants()
+
+        row = box.row()
+        row.template_list(
+            TMUnlimiter_VariationItem.bl_idname,
+            "variation",
+            selected_variants, f"{ block_definition.selected_variant_type }_variations",
+            selected_variants, "selected_variation_index"
+        )
+        col = row.column()
+        col.operator( TMUnlimiter_AddVariation.bl_idname, text = "", icon = "ADD" )
+        col.operator( TMUnlimiter_RemoveVariation.bl_idname, text = "", icon = "REMOVE" )
+
+        selected_variation = block_definition.get_selected_variation( selected_variants )
+
+        if selected_variation :
+            box.prop( selected_variation, "name" )
+
+            if block_definition.is_trigger_allowed() :
+                validation_result, validation_message = selected_variation.validate_model()
+            else :
+                validation_result, validation_message = ( True, None )
 
             box.alert = not validation_result
-            box.prop( block_definition, "selected_variant" )
+            box.prop( selected_variation, "model" )
 
             if box.alert :
                 box.label( text = validation_message, icon = "ERROR" )
-                box.alert = False
 
-            row = box.row()
-            row.prop( block_definition, "selected_variant_type", expand = True )
-
-            selected_variants = block_definition.get_selected_variants()
-
-            row = box.row()
-            row.template_list(
-                TMUnlimiter_VariationItem.bl_idname,
-                "variation",
-                selected_variants, f"{ block_definition.selected_variant_type }_variations",
-                selected_variants, "selected_variation_index"
-            )
-            col = row.column()
-            col.operator( TMUnlimiter_AddVariation.bl_idname, text = "", icon = "ADD" )
-            col.operator( TMUnlimiter_RemoveVariation.bl_idname, text = "", icon = "REMOVE" )
-
-            selected_variation = block_definition.get_selected_variation( selected_variants )
-
-            if selected_variation :
-                box.prop( selected_variation, "name" )
-
-                if block_definition.is_trigger_allowed() :
-                    validation_result, validation_message = selected_variation.validate_model()
-                else :
-                    validation_result, validation_message = ( True, None )
+            if block_definition.is_trigger_allowed() :
+                validation_result, validation_message = selected_variation.validate_trigger()
 
                 box.alert = not validation_result
-                box.prop( selected_variation, "model" )
+                box.prop( selected_variation, "trigger" )
 
                 if box.alert :
                     box.label( text = validation_message, icon = "ERROR" )
 
-                if block_definition.is_trigger_allowed() :
-                    validation_result, validation_message = selected_variation.validate_trigger()
+        layout.prop( block_definition, "ground_spawn_location_object" )
+        layout.prop( block_definition, "air_spawn_location_object" )
 
-                    box.alert = not validation_result
-                    box.prop( selected_variation, "trigger" )
+        validation_result, validation_message = block_definition.validate_icon()
 
-                    if box.alert :
-                        box.label( text = validation_message, icon = "ERROR" )
+        layout.alert = not validation_result
+        layout.prop( block_definition, "icon" )
 
-            layout.prop( block_definition, "ground_spawn_location_object" )
-            layout.prop( block_definition, "air_spawn_location_object" )
+        if layout.alert :
+            layout.label( text = validation_message, icon = "ERROR" )
+            layout.alert = False
+
+        box = layout.box()
+        row = box.row()
+        row.alignment = "CENTER"
+        row.label( text = "Block Units" )
+
+        row = box.row()
+        row.prop( block_definition, "selected_block_unit_type", expand = True )
+
+        block_unit = block_definition.get_selected_block_unit()
+
+        row = box.row()
+        row.template_list(
+            TMUnlimiter_BlockUnitItem.bl_idname,
+            "block_unit",
+            block_definition, f"{ block_definition.selected_block_unit_type }_block_units",
+            block_definition, "selected_block_unit_index"
+        )
+        col = row.column()
+        col.operator( TMUnlimiter_AddBlockUnit.bl_idname, text = "", icon = "ADD" )
+        col.operator( TMUnlimiter_RemoveBlockUnit.bl_idname, text = "", icon = "REMOVE" )
+
+        if block_unit :
+            box.prop( block_unit, "object", text = "Object" )
+
+        box.operator( TMUnlimiter_CopyAllBlockUnitsToSecondType.bl_idname )
 
         layout.separator()
         layout.prop( block_definition, "backward_compatibility_enabled" )
+
+        if block_definition.backward_compatibility_enabled :
+            layout.prop( block_definition, "backward_compatibility_model" )
+
         layout.operator( TMUnlimiter_ExportBlockDefinition.bl_idname, text = "Export block definition", icon = "EXPORT" )
 
 def __register__() :
+    bpy.utils.register_class( TMUnlimiter_BlockUnit )
+    bpy.utils.register_class( TMUnlimiter_BlockUnitItem )
+    bpy.utils.register_class( TMUnlimiter_AddBlockUnit )
+    bpy.utils.register_class( TMUnlimiter_RemoveBlockUnit )
+    bpy.utils.register_class( TMUnlimiter_CopyAllBlockUnitsToSecondType )
     bpy.utils.register_class( TMUnlimiter_Variation )
     bpy.utils.register_class( TMUnlimiter_Variants )
     bpy.utils.register_class( TMUnlimiter_VariationItem )
@@ -324,3 +481,8 @@ def __unregister__() :
     bpy.utils.unregister_class( TMUnlimiter_VariationItem )
     bpy.utils.unregister_class( TMUnlimiter_Variants )
     bpy.utils.unregister_class( TMUnlimiter_Variation )
+    bpy.utils.unregister_class( TMUnlimiter_CopyAllBlockUnitsToSecondType )
+    bpy.utils.unregister_class( TMUnlimiter_RemoveBlockUnit )
+    bpy.utils.unregister_class( TMUnlimiter_AddBlockUnit )
+    bpy.utils.unregister_class( TMUnlimiter_BlockUnitItem )
+    bpy.utils.unregister_class( TMUnlimiter_BlockUnit )

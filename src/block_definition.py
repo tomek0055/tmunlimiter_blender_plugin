@@ -3,9 +3,11 @@ from datetime import datetime, timezone
 from .blender_gbx import GbxArchive, HeaderChunk
 from .plug_tree import plug_tree_from_object
 
+from .block_unit import TMUnlimiter_BlockUnit
 from .variation import TMUnlimiter_Variation, poll_object
 from .variants import TMUnlimiter_Variants
 
+import typing
 import bpy
 
 class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
@@ -61,6 +63,18 @@ class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
 
         if selected_variants.selected_variation_index < len( selected_variations ) :
             return selected_variations[ selected_variants.selected_variation_index ]
+
+        return None
+
+    def get_selected_block_units( self ) -> bpy.types.bpy_prop_collection :
+        return self.path_resolve( f"{ self.selected_block_unit_type }_block_units" )
+
+    def get_selected_block_unit( self, block_units = None ) -> TMUnlimiter_BlockUnit | None :
+        if not block_units :
+            block_units = self.get_selected_block_units()
+
+        if self.selected_block_unit_index < len( block_units ) :
+            return block_units[ self.selected_block_unit_index ]
 
         return None
 
@@ -127,6 +141,73 @@ class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
 
         return ( True, None )
 
+    def validate_icon( self, **kwargs ) :
+        icon_to_evaluate = self.icon
+
+        if "icon_to_evaluate" in kwargs :
+            icon_to_evaluate = kwargs[ "icon_to_evaluate" ]
+
+            if type( icon_to_evaluate ) != bpy.types.ImageTexture :
+                return ( False, "Icon is not an image texture" )
+
+        if not icon_to_evaluate :
+            return ( True, None )
+
+        if icon_to_evaluate.type != "IMAGE" :
+            return ( False, 'Icon is not "IMAGE" type' )
+
+        image = icon_to_evaluate.image
+
+        if not image :
+            return ( False, 'Texture does not have an image' )
+
+        if len( image.size ) != 2 :
+            return ( False, "Icon does not have exactly two dimensions" )
+
+        width, height = image.size
+
+        if width <= 0 or height <= 0 :
+            return ( False, "Image is not loaded" )
+
+        if width > 255 :
+            return ( False, "Icon width exceeds maximum possible size of 255 pixels" )
+
+        if height > 255 :
+            return ( False, "Icon height exceeds maximum possible size of 255 pixels" )
+
+        return ( True, None )
+
+    def __validate_block_units__( self, block_units: typing.List[TMUnlimiter_BlockUnit] ) :
+        for block_unit_index, block_unit in enumerate( block_units ) :
+            validation_result = block_unit.validate()
+
+            if not validation_result[ 0 ] :
+                return validation_result
+
+            if block_unit_index < 1 :
+                continue
+
+            block_unit_offset = block_unit.calculate_offset()
+            back_block_unit_index = block_unit_index
+
+            while back_block_unit_index :
+                back_block_unit_index = back_block_unit_index - 1
+                back_block_unit = block_units[ back_block_unit_index ]
+                back_block_unit_offset = back_block_unit.calculate_offset()
+
+                if block_unit_offset == back_block_unit_offset :
+                    return ( False, f"Block Unit #{ 1 + back_block_unit_index } has the same coordinates" )
+
+        return ( True, None )
+
+    def validate_block_units( self ) :
+        validation_result = self.__validate_block_units__( self.ground_block_units )
+
+        if not validation_result[ 0 ] :
+            return validation_result
+
+        return self.__validate_block_units__( self.air_block_units )
+
     def archive( self, gbx: GbxArchive ) :
         if "depsgraph" not in gbx.context :
             raise Exception( "Evaluted depsgraph is required to archive block definition" )
@@ -146,11 +227,66 @@ class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
         if not validation_result :
             raise Exception( validation_message )
 
-        header_chunk = HeaderChunk( 0x3f_002_001 )
+        validation_result, validation_message = self.validate_icon()
+
+        if not validation_result :
+            raise Exception( validation_message )
+
+        validation_result, validation_message = self.validate_block_units()
+
+        if not validation_result :
+            raise Exception( validation_message )
+
+        header_chunk = HeaderChunk( 0x3f_002_002 )
         header_chunk.mw_id( self.identifier )
         header_chunk.mw_id( self.author )
+        flags = 0
+
+        if self.backward_compatibility_enabled :
+            flags = 1
+
+        # Block type archivization
+        if self.block_type == "classic" :
+            flags |= 2 << 1
+        elif self.block_type == "road" :
+            flags |= 3 << 1
+        else :
+            raise Exception( f'Unknown block type "{ self.block_type }"' )
+
+        # Waypoint type archivization
+        if self.waypoint_type == "start" :
+            pass
+        elif self.waypoint_type == "finish" :
+            flags |= 1 << 4
+        elif self.waypoint_type == "checkpoint" :
+            flags |= 2 << 4
+        elif self.waypoint_type == "none" :
+            flags |= 3 << 4
+        elif self.waypoint_type == "multilap" :
+            flags |= 4 << 4
+        else :
+            raise Exception( f'Unknown waypoint type "{ self.waypoint_type }"' )
+
+        if self.icon :
+            flags |= 1 << 7
+
+        header_chunk.nat8( flags )
+
+        if self.icon :
+            image: bpy.types.Image = self.icon.image
+
+            header_chunk.nat8( image.size[ 0 ] ) # Width
+            header_chunk.nat8( image.size[ 1 ] ) # Height
+
+            for pixel_index in range( image.size[ 0 ] * image.size[ 1 ] ) :
+                component_index = pixel_index * 4
+
+                header_chunk.nat8( int( image.pixels[ component_index + 2 ] * 255 ) )
+                header_chunk.nat8( int( image.pixels[ component_index + 1 ] * 255 ) )
+                header_chunk.nat8( int( image.pixels[ component_index + 0 ] * 255 ) )
+                header_chunk.nat8( int( image.pixels[ component_index + 3 ] * 255 ) )
+
         header_chunk.nat64( int( datetime.now( timezone.utc ).timestamp() * 1000 ) )
-        header_chunk.nat8( int( self.backward_compatibility_enabled ) )
         gbx.header_chunk( header_chunk )
 
         gbx.context[ "objects_data" ] = {}
@@ -181,17 +317,17 @@ class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
 
         available_variants = self.get_available_variants( None )
 
+        for variant_id, __variant_title__, __variant_description__ in available_variants :
+            variants = self.path_resolve( f"variants_{ self.block_type }_{ variant_id }" )
+
+            for ground_variation in variants.ground_variations :
+                archive_variation( ground_variation )
+
+            for air_variation in variants.air_variations :
+                archive_variation( air_variation )
+
         if self.backward_compatibility_enabled :
             archive_object( self.backward_compatibility_model )
-        else:
-            for variant_id, __variant_title__, __variant_description__ in available_variants :
-                variants = self.path_resolve( f"variants_{ self.block_type }_{ variant_id }" )
-
-                for ground_variation in variants.ground_variations :
-                    archive_variation( ground_variation )
-
-                for air_variation in variants.air_variations :
-                    archive_variation( air_variation )
 
         # Replacement texture archivization
         replacement_texture_flags = 0
@@ -220,32 +356,6 @@ class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
             gbx.nat8( int( custom_texture_tuple[ 1 ] ) ) # texture.filtering
             gbx.nat8( int( custom_texture_tuple[ 2 ] ) ) # texture.addressing
 
-        # Waypoint type archivization
-        if self.backward_compatibility_enabled :
-            gbx.nat8( 3 )
-        elif self.waypoint_type == "start" :
-            gbx.nat8( 0 )
-        elif self.waypoint_type == "finish" :
-            gbx.nat8( 1 )
-        elif self.waypoint_type == "checkpoint" :
-            gbx.nat8( 2 )
-        elif self.waypoint_type == "none" :
-            gbx.nat8( 3 )
-        elif self.waypoint_type == "multilap" :
-            gbx.nat8( 4 )
-        else :
-            raise Exception( f'Unknown waypoint type "{ self.waypoint_type }"' )
-
-        # Block type archivization
-        if self.backward_compatibility_enabled :
-            gbx.nat8( 2 )
-        elif self.block_type == "classic" :
-            gbx.nat8( 2 )
-        elif self.block_type == "road" :
-            gbx.nat8( 3 )
-        else :
-            raise Exception( f'Unknown block type "{ self.block_type }"' )
-
         # Write variations previously archived to the independent buffers
         def archive_variation_from_gbx_context( object: bpy.types.Object ) :
             if not object :
@@ -259,23 +369,20 @@ class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
                 gbx.context[ "archived_objects" ].add( object )
                 gbx.data( plug_tree_data )
 
-        if self.backward_compatibility_enabled :
-            archive_variation_from_gbx_context( self.backward_compatibility_model )
-        else :
-            def archive_variations_from_gbx_context( variations ) :
-                gbx.nat8( len( variations ) )
+        def archive_variations_from_gbx_context( variations ) :
+            gbx.nat8( len( variations ) )
 
-                for variation in variations :
-                    archive_variation_from_gbx_context( variation.model )
+            for variation in variations :
+                archive_variation_from_gbx_context( variation.model )
 
-                    if self.is_trigger_allowed() :
-                        archive_variation_from_gbx_context( variation.trigger )
+                if self.is_trigger_allowed() :
+                    archive_variation_from_gbx_context( variation.trigger )
 
-            for variant_id, __variant_title__, __variant_description__ in available_variants :
-                variants = self.path_resolve( f"variants_{ self.block_type }_{ variant_id }" )
+        for variant_id, __variant_title__, __variant_description__ in available_variants :
+            variants = self.path_resolve( f"variants_{ self.block_type }_{ variant_id }" )
 
-                archive_variations_from_gbx_context( variants.ground_variations )
-                archive_variations_from_gbx_context( variants.air_variations )
+            archive_variations_from_gbx_context( variants.ground_variations )
+            archive_variations_from_gbx_context( variants.air_variations )
 
         # Spawn location
         def write_spawn_location( object: bpy.types.Object ) :
@@ -294,16 +401,26 @@ class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
                 gbx.real( object.rotation_euler.z )
                 gbx.real( object.rotation_euler.x )
 
+        write_spawn_location( self.ground_spawn_location_object )
+        write_spawn_location( self.air_spawn_location_object )
+
+        # Block units
+        gbx.nat32( len( self.ground_block_units ) )
+        gbx.nat32( len( self.air_block_units ) )
+
+        for ground_block_unit in self.ground_block_units :
+            ground_block_unit.archive( gbx )
+
+        for air_block_unit in self.air_block_units :
+            air_block_unit.archive( gbx )
+
         if self.backward_compatibility_enabled :
-            write_spawn_location( self.backward_compatibility_spawn_location_object )
-        else :
-            write_spawn_location( self.ground_spawn_location_object )
-            write_spawn_location( self.air_spawn_location_object )
+            archive_variation_from_gbx_context( self.backward_compatibility_model )
 
         # Finalize archivization
         chunk_buffer = gbx.attach_buffer( root_buffer ).getvalue()
 
-        gbx.nat32( 0x3f002000 )
+        gbx.nat32( 0x3f002001 )
         gbx.nat32( 0x534b4950 )
         gbx.nat32( len( chunk_buffer ) )
         gbx.data( chunk_buffer )
@@ -331,6 +448,15 @@ class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
     ground_spawn_location_object: bpy.props.PointerProperty( name = "Ground spawn location", type = bpy.types.Object, poll = poll_suitable_location_object )
     air_spawn_location_object: bpy.props.PointerProperty( name = "Air spawn location", type = bpy.types.Object, poll = poll_suitable_location_object )
 
-    backward_compatibility_enabled: bpy.props.BoolProperty( name = "Backward compatible", default = False )
-    backward_compatibility_model: bpy.props.PointerProperty( name = "Model", type = bpy.types.Object, poll = poll_object )
-    backward_compatibility_spawn_location_object: bpy.props.PointerProperty( name = "Spawn location", type = bpy.types.Object, poll = poll_suitable_location_object )
+    backward_compatibility_enabled: bpy.props.BoolProperty( name = "Is backward compatible", default = False )
+    backward_compatibility_model: bpy.props.PointerProperty( name = "Backward compatible model", type = bpy.types.Object, poll = poll_object )
+
+    def __validate_icon__( self, texture: bpy.types.ImageTexture ) :
+        return self.validate_icon( icon_to_evaluate = texture )[ 0 ]
+
+    icon: bpy.props.PointerProperty( name = "Icon", type = bpy.types.Texture, poll = __validate_icon__ )
+
+    selected_block_unit_index: bpy.props.IntProperty( options = { "HIDDEN", "SKIP_SAVE" } )
+    selected_block_unit_type: bpy.props.EnumProperty( items = [ ( "ground", "Ground", "Ground block unit type" ), ( "air", "Air", "Air block unit type" ) ], name = "Selected block unit type", options = { "SKIP_SAVE" } )
+    ground_block_units: bpy.props.CollectionProperty( type = TMUnlimiter_BlockUnit )
+    air_block_units: bpy.props.CollectionProperty( type = TMUnlimiter_BlockUnit )

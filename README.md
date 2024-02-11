@@ -16,6 +16,7 @@ An official plugin for Blender that allows users to create custom blocks for TMU
         - ``Lighting``
         - ``Occlusion``
 - Custom ground and air spawn location support
+- Support for defining block units
 - ``Point`` and ``Spot`` lighting
 
 ## Installation
@@ -40,8 +41,11 @@ $ sudo pacman -S python-lzo
 ```
 
 #### Windows
-Official installation of the ``python-lzo`` library using ``pip`` is complicated.
-You have to install [...] from website [...], unpack the pyd file and move it to [...] folder.
+Windows version of Blender comes with its own python. You need to install ``python-lzo`` using Blender's python console like this :
+```python
+import pip
+pip.main(["install", "python-lzo"])
+```
 
 ### Install plugin
 You can install this plugin by going to the ``Preferences > Add-ons`` and clicking ``Install...`` button and choosing the zip file found in the releases section.

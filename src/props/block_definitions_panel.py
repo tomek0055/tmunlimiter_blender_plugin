@@ -25,21 +25,18 @@ class TMUnlimiter_VariationItem( bpy.types.UIList ) :
 
 class TMUnlimiter_BlockUnitItem( bpy.types.UIList ) :
     bl_idname = "TMUNLIMITER_UL_BlockUnitItem"
-
-    def __init__( self ) :
-        self.last_item_failed_validation = False
-        super().__init__()
+    last_item_failed_validation = False
 
     def draw_item( self, __context__: bpy.types.Context, layout: bpy.types.UILayout, block_definition: TMUnlimiter_BlockDefinition, block_unit: TMUnlimiter_BlockUnit, __icon__, __active_data__, __active_propname__, index: int ) :
         if not index :
-            self.last_item_failed_validation = False
+            TMUnlimiter_BlockUnitItem.last_item_failed_validation = False
 
         validation_result, validation_message = block_unit.validate()
 
         if validation_result :
             offset = block_unit.calculate_offset()
 
-        if validation_result and index > 1 and not self.last_item_failed_validation :
+        if validation_result and index > 0 and not TMUnlimiter_BlockUnitItem.last_item_failed_validation :
             block_units = block_definition.get_selected_block_units()
             back_index = index
 
@@ -53,15 +50,18 @@ class TMUnlimiter_BlockUnitItem( bpy.types.UIList ) :
                     validation_message = f"Block Unit #{ 1 + back_index } has the same coordinates"
 
                     break
-        elif not validation_result :
-            self.last_item_failed_validation = True
 
-        layout.alert = not validation_result
+        if not validation_result :
+            TMUnlimiter_BlockUnitItem.last_item_failed_validation = True
 
-        if validation_result :
-            layout.label( text = f"Block Unit #{ 1 + index } at { '{' } { offset[ 0 ] }, { offset[ 1 ] }, { offset[ 2 ] } { '}' }", icon = "MATCUBE" )
-        else :
+        layout.alert = TMUnlimiter_BlockUnitItem.last_item_failed_validation or not validation_result
+
+        if not validation_result :
             layout.label( text = f"Block Unit #{ 1 + index } ({ validation_message })", icon = "MATCUBE" )
+        elif TMUnlimiter_BlockUnitItem.last_item_failed_validation :
+            layout.label( text = f"Block Unit #{ 1 + index } (Please solve problem with block unit above)", icon = "MATCUBE" )
+        else :
+            layout.label( text = f"Block Unit #{ 1 + index } at { '{' } { offset[ 0 ] }, { offset[ 1 ] }, { offset[ 2 ] } { '}' }", icon = "MATCUBE" )
 
 class TMUnlimiter_AddBlockDefinition( bpy.types.Operator ) :
     bl_label = "Add block definition"
@@ -83,6 +83,40 @@ class TMUnlimiter_RemoveBlockDefinition( bpy.types.Operator ) :
         if context.scene.tmunlimiter_selected_block_definition_index > 0 :
             context.scene.tmunlimiter_selected_block_definition_index = context.scene.tmunlimiter_selected_block_definition_index - 1
 
+        return { "FINISHED" }
+
+class TMUnlimiter_MoveBlockDefinitionUpwards( bpy.types.Operator ) :
+    bl_label = "Move block definition upwards"
+    bl_idname = "scene.tmunlimiter_move_block_definition_upwards"
+
+    def execute( self, context: bpy.context ) :
+        if context.scene.tmunlimiter_selected_block_definition_index - 1 < 0 :
+            return { "CANCELLED" }
+
+        context.scene.tmunlimiter_block_definitions.move \
+        (
+            context.scene.tmunlimiter_selected_block_definition_index,
+            context.scene.tmunlimiter_selected_block_definition_index - 1
+        )
+
+        context.scene.tmunlimiter_selected_block_definition_index = context.scene.tmunlimiter_selected_block_definition_index - 1
+        return { "FINISHED" }
+
+class TMUnlimiter_MoveBlockDefinitionDownwards( bpy.types.Operator ) :
+    bl_label = "Move selected block definition"
+    bl_idname = "scene.tmunlimiter_move_block_definition_downwards"
+
+    def execute( self, context: bpy.context ) :
+        if context.scene.tmunlimiter_selected_block_definition_index + 1 >= len( context.scene.tmunlimiter_block_definitions ) :
+            return { "CANCELLED" }
+
+        context.scene.tmunlimiter_block_definitions.move \
+        (
+            context.scene.tmunlimiter_selected_block_definition_index,
+            context.scene.tmunlimiter_selected_block_definition_index + 1
+        )
+
+        context.scene.tmunlimiter_selected_block_definition_index = context.scene.tmunlimiter_selected_block_definition_index + 1
         return { "FINISHED" }
 
 class TMUnlimiter_CopyBlockDefinition( bpy.types.Operator ) :
@@ -172,6 +206,46 @@ class TMUnlimiter_RemoveVariation( bpy.types.Operator ) :
 
         return { "FINISHED" }
 
+class TMUnlimiter_MoveVariationUpwards( bpy.types.Operator ) :
+    bl_label = "Move variation upwards"
+    bl_idname = "scene.tmunlimiter_move_variation_upwards"
+
+    def execute( self, context: bpy.context ) :
+        block_definition = get_selected_block_definition( context )
+
+        if block_definition is None :
+            return { "CANCELLED" }
+
+        selected_variants = block_definition.get_selected_variants()
+        selected_variations = block_definition.get_selected_variations( selected_variants )
+
+        if selected_variants.selected_variation_index - 1 < 0 :
+            return { "CANCELLED" }
+
+        selected_variations.move( selected_variants.selected_variation_index, selected_variants.selected_variation_index - 1 )
+        selected_variants.selected_variation_index = selected_variants.selected_variation_index - 1
+        return { "FINISHED" }
+
+class TMUnlimiter_MoveVariationDownwards( bpy.types.Operator ) :
+    bl_label = "Move variation downwards"
+    bl_idname = "scene.tmunlimiter_move_variation_downwards"
+
+    def execute( self, context: bpy.context ) :
+        block_definition = get_selected_block_definition( context )
+
+        if block_definition is None :
+            return { "CANCELLED" }
+
+        selected_variants = block_definition.get_selected_variants()
+        selected_variations = block_definition.get_selected_variations( selected_variants )
+
+        if selected_variants.selected_variation_index + 1 >= len( selected_variations ) :
+            return { "CANCELLED" }
+
+        selected_variations.move( selected_variants.selected_variation_index, selected_variants.selected_variation_index + 1 )
+        selected_variants.selected_variation_index = selected_variants.selected_variation_index + 1
+        return { "FINISHED" }
+
 class TMUnlimiter_AddBlockUnit( bpy.types.Operator ) :
     bl_label = "Add block unit"
     bl_idname = "scene.tmunlimiter_add_block_unit"
@@ -206,6 +280,44 @@ class TMUnlimiter_RemoveBlockUnit( bpy.types.Operator ) :
 
         return { "FINISHED" }
 
+class TMUnlimiter_MoveBlockUnitUpwards( bpy.types.Operator ) :
+    bl_label = "Move block unit upwards"
+    bl_idname = "scene.tmunlimiter_move_block_unit_upwards"
+
+    def execute( self, context: bpy.context ) :
+        block_definition = get_selected_block_definition( context )
+
+        if block_definition is None :
+            return { "CANCELLED" }
+
+        block_units = block_definition.get_selected_block_units()
+
+        if block_definition.selected_block_unit_index - 1 < 0 :
+            return { "CANCELLED" }
+
+        block_units.move( block_definition.selected_block_unit_index, block_definition.selected_block_unit_index - 1 )
+        block_definition.selected_block_unit_index = block_definition.selected_block_unit_index - 1
+        return { "FINISHED" }
+
+class TMUnlimiter_MoveBlockUnitDownwards( bpy.types.Operator ) :
+    bl_label = "Move block unit downwards"
+    bl_idname = "scene.tmunlimiter_move_block_unit_downwards"
+
+    def execute( self, context: bpy.context ) :
+        block_definition = get_selected_block_definition( context )
+
+        if block_definition is None :
+            return { "CANCELLED" }
+
+        block_units = block_definition.get_selected_block_units()
+
+        if block_definition.selected_block_unit_index + 1 >= len( block_units ) :
+            return { "CANCELLED" }
+
+        block_units.move( block_definition.selected_block_unit_index, block_definition.selected_block_unit_index + 1 )
+        block_definition.selected_block_unit_index = block_definition.selected_block_unit_index + 1
+        return { "FINISHED" }
+
 class TMUnlimiter_CopyAllBlockUnitsToSecondType( bpy.types.Operator ) :
     bl_label = "Copy all block units to second type"
     bl_idname = "scene.tmunlimiter_copy_units_to_second_type"
@@ -225,6 +337,69 @@ class TMUnlimiter_CopyAllBlockUnitsToSecondType( bpy.types.Operator ) :
 
         for soruce_block_unit in source_block_units :
             destination_block_units.add().copy_from( soruce_block_unit )
+
+        return { "FINISHED" }
+
+class TMUnlimiter_CreateBlockUnitsFromSelection( bpy.types.Operator ) :
+    bl_label = "Create block units from selection"
+    bl_idname = "scene.tmunlimiter_create_units_from_selection"
+
+    def execute( self, context: bpy.context ) :
+        block_definition = get_selected_block_definition( context )
+
+        if block_definition is None :
+            return { "CANCELLED" }
+
+        if len( context.selected_objects ) < 1 :
+            return { "CANCELLED" }
+
+        block_units = block_definition.get_selected_block_units()
+
+        for selected_object in context.selected_objects :
+            validation_result, _ = TMUnlimiter_BlockUnit.static_object_validate( selected_object )
+
+            if not validation_result :
+                continue
+
+            back_block_unit_index = len( block_units )
+
+            if back_block_unit_index > 0 :
+                block_unit_offset = TMUnlimiter_BlockUnit.static_calculate_offset( selected_object )
+
+                while back_block_unit_index :
+                    back_block_unit_index = back_block_unit_index - 1
+                    back_block_unit_offset = block_units[ back_block_unit_index ].calculate_offset()
+
+                    if block_unit_offset == back_block_unit_offset :
+                        validation_result = False
+                        break
+
+                if not validation_result :
+                    continue
+
+            block_unit = block_units.add()
+            block_unit.object = selected_object
+
+        return { "FINISHED" }
+
+class TMUnlimiter_SelectAllBlockUnits( bpy.types.Operator ) :
+    bl_label = "Select all block units"
+    bl_idname = "scene.tmunlimiter_select_all_units"
+
+    def execute( self, context: bpy.context ) :
+        block_definition = get_selected_block_definition( context )
+
+        if block_definition is None :
+            return { "CANCELLED" }
+
+        block_units = block_definition.get_selected_block_units()
+
+        if len( block_units ) < 1 :
+            return { "CANCELLED" }
+
+        for block_unit in block_units :
+            if block_unit.object :
+                block_unit.object.select_set( True )
 
         return { "FINISHED" }
 
@@ -312,6 +487,8 @@ class TMUnlimiter_BlockDefinitionsPanel( bpy.types.Panel ) :
         col = row.column()
         col.operator( TMUnlimiter_AddBlockDefinition.bl_idname, text = "", icon = "ADD" )
         col.operator( TMUnlimiter_RemoveBlockDefinition.bl_idname, text = "", icon = "REMOVE" )
+        col.operator( TMUnlimiter_MoveBlockDefinitionUpwards.bl_idname, text = "", icon = "TRIA_UP" )
+        col.operator( TMUnlimiter_MoveBlockDefinitionDownwards.bl_idname, text = "", icon = "TRIA_DOWN" )
 
         row = layout.row()
         row.operator( TMUnlimiter_CopyBlockDefinition.bl_idname, icon = "COPY_ID" )
@@ -371,6 +548,8 @@ class TMUnlimiter_BlockDefinitionsPanel( bpy.types.Panel ) :
         col = row.column()
         col.operator( TMUnlimiter_AddVariation.bl_idname, text = "", icon = "ADD" )
         col.operator( TMUnlimiter_RemoveVariation.bl_idname, text = "", icon = "REMOVE" )
+        col.operator( TMUnlimiter_MoveVariationUpwards.bl_idname, text = "", icon = "TRIA_UP" )
+        col.operator( TMUnlimiter_MoveVariationDownwards.bl_idname, text = "", icon = "TRIA_DOWN" )
 
         selected_variation = block_definition.get_selected_variation( selected_variants )
 
@@ -429,10 +608,14 @@ class TMUnlimiter_BlockDefinitionsPanel( bpy.types.Panel ) :
         col = row.column()
         col.operator( TMUnlimiter_AddBlockUnit.bl_idname, text = "", icon = "ADD" )
         col.operator( TMUnlimiter_RemoveBlockUnit.bl_idname, text = "", icon = "REMOVE" )
+        col.operator( TMUnlimiter_MoveBlockUnitUpwards.bl_idname, text = "", icon = "TRIA_UP" )
+        col.operator( TMUnlimiter_MoveBlockUnitDownwards.bl_idname, text = "", icon = "TRIA_DOWN" )
 
         if block_unit :
             box.prop( block_unit, "object", text = "Object" )
 
+        box.operator( TMUnlimiter_CreateBlockUnitsFromSelection.bl_idname )
+        box.operator( TMUnlimiter_SelectAllBlockUnits.bl_idname )
         box.operator( TMUnlimiter_CopyAllBlockUnitsToSecondType.bl_idname )
 
         layout.separator()
@@ -448,7 +631,11 @@ def __register__() :
     bpy.utils.register_class( TMUnlimiter_BlockUnitItem )
     bpy.utils.register_class( TMUnlimiter_AddBlockUnit )
     bpy.utils.register_class( TMUnlimiter_RemoveBlockUnit )
+    bpy.utils.register_class( TMUnlimiter_MoveBlockUnitUpwards )
+    bpy.utils.register_class( TMUnlimiter_MoveBlockUnitDownwards )
     bpy.utils.register_class( TMUnlimiter_CopyAllBlockUnitsToSecondType )
+    bpy.utils.register_class( TMUnlimiter_SelectAllBlockUnits )
+    bpy.utils.register_class( TMUnlimiter_CreateBlockUnitsFromSelection )
     bpy.utils.register_class( TMUnlimiter_Variation )
     bpy.utils.register_class( TMUnlimiter_Variants )
     bpy.utils.register_class( TMUnlimiter_VariationItem )
@@ -456,9 +643,13 @@ def __register__() :
     bpy.utils.register_class( TMUnlimiter_BlockDefinitionItem )
     bpy.utils.register_class( TMUnlimiter_AddBlockDefinition )
     bpy.utils.register_class( TMUnlimiter_RemoveBlockDefinition )
+    bpy.utils.register_class( TMUnlimiter_MoveBlockDefinitionUpwards )
+    bpy.utils.register_class( TMUnlimiter_MoveBlockDefinitionDownwards )
     bpy.utils.register_class( TMUnlimiter_CopyBlockDefinition )
     bpy.utils.register_class( TMUnlimiter_AddVariation )
     bpy.utils.register_class( TMUnlimiter_RemoveVariation )
+    bpy.utils.register_class( TMUnlimiter_MoveVariationUpwards )
+    bpy.utils.register_class( TMUnlimiter_MoveVariationDownwards )
     bpy.utils.register_class( TMUnlimiter_BlockDefinitionsPanel )
     bpy.utils.register_class( TMUnlimiter_ExportBlockDefinition )
 
@@ -471,9 +662,13 @@ def __unregister__() :
 
     bpy.utils.unregister_class( TMUnlimiter_ExportBlockDefinition )
     bpy.utils.unregister_class( TMUnlimiter_BlockDefinitionsPanel )
+    bpy.utils.unregister_class( TMUnlimiter_MoveVariationDownwards )
+    bpy.utils.unregister_class( TMUnlimiter_MoveVariationUpwards )
     bpy.utils.unregister_class( TMUnlimiter_RemoveVariation )
     bpy.utils.unregister_class( TMUnlimiter_AddVariation )
     bpy.utils.unregister_class( TMUnlimiter_CopyBlockDefinition )
+    bpy.utils.unregister_class( TMUnlimiter_MoveBlockDefinitionDownwards )
+    bpy.utils.unregister_class( TMUnlimiter_MoveBlockDefinitionUpwards )
     bpy.utils.unregister_class( TMUnlimiter_RemoveBlockDefinition )
     bpy.utils.unregister_class( TMUnlimiter_AddBlockDefinition )
     bpy.utils.unregister_class( TMUnlimiter_BlockDefinitionItem )
@@ -481,7 +676,11 @@ def __unregister__() :
     bpy.utils.unregister_class( TMUnlimiter_VariationItem )
     bpy.utils.unregister_class( TMUnlimiter_Variants )
     bpy.utils.unregister_class( TMUnlimiter_Variation )
+    bpy.utils.unregister_class( TMUnlimiter_CreateBlockUnitsFromSelection )
+    bpy.utils.unregister_class( TMUnlimiter_SelectAllBlockUnits )
     bpy.utils.unregister_class( TMUnlimiter_CopyAllBlockUnitsToSecondType )
+    bpy.utils.unregister_class( TMUnlimiter_MoveBlockUnitDownwards )
+    bpy.utils.unregister_class( TMUnlimiter_MoveBlockUnitUpwards )
     bpy.utils.unregister_class( TMUnlimiter_RemoveBlockUnit )
     bpy.utils.unregister_class( TMUnlimiter_AddBlockUnit )
     bpy.utils.unregister_class( TMUnlimiter_BlockUnitItem )

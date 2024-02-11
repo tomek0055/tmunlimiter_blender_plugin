@@ -61,7 +61,7 @@ class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
         if not selected_variations :
             selected_variations = self.get_selected_variations( selected_variants )
 
-        if selected_variants.selected_variation_index < len( selected_variations ) :
+        if selected_variants.selected_variation_index >= 0 and selected_variants.selected_variation_index < len( selected_variations ) :
             return selected_variations[ selected_variants.selected_variation_index ]
 
         return None
@@ -73,7 +73,7 @@ class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
         if not block_units :
             block_units = self.get_selected_block_units()
 
-        if self.selected_block_unit_index < len( block_units ) :
+        if self.selected_block_unit_index >= 0 and self.selected_block_unit_index < len( block_units ) :
             return block_units[ self.selected_block_unit_index ]
 
         return None

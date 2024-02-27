@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import Any, Callable
 from io import BytesIO
 import typing
@@ -128,6 +129,9 @@ class ExternalRef :
     def archive( self, buffer: BytesIO, instance_index: int, folder_index: int ) :
         raise Exception( "Not implemented" )
 
+    def compare( self, other: ExternalRef ) -> bool :
+        return type( self ) == type( other ) and self.use_fid == other.use_fid
+
 class FileExternalRef( ExternalRef ) :
 
     def __init__( self, file_path: str | list[str] | tuple[str], use_fid = False ) :
@@ -161,6 +165,9 @@ class FileExternalRef( ExternalRef ) :
         nat32( buffer, self.use_fid )
         nat32( buffer, folder_index )
 
+    def compare( self, other: ExternalRef ) -> bool :
+        return ExternalRef.compare( self, other ) and self.file_name == other.file_name and self.file_path == other.file_path
+
 class ResourceExternalRef( ExternalRef ) :
 
     def __init__( self, resource_index: int, use_fid = False ) :
@@ -172,6 +179,9 @@ class ResourceExternalRef( ExternalRef ) :
         nat32( buffer, self.resource_index )
         nat32( buffer, instance_index )
         nat32( buffer, self.use_fid )
+
+    def compare( self, other: ExternalRef ) -> bool :
+        return ExternalRef.compare( self, other ) and self.resource_index == other.resource_index
 
 class GbxArchive( GbxContainer ) :
 

@@ -478,7 +478,8 @@ class TMUnlimiter_BlockDefinitionsPanel( bpy.types.Panel ) :
         layout = self.layout
 
         row = layout.row()
-        row.template_list(
+        row.template_list \
+        (
             TMUnlimiter_BlockDefinitionItem.bl_idname,
             "block_definition",
             context.scene, "tmunlimiter_block_definitions",
@@ -539,7 +540,8 @@ class TMUnlimiter_BlockDefinitionsPanel( bpy.types.Panel ) :
         selected_variants = block_definition.get_selected_variants()
 
         row = box.row()
-        row.template_list(
+        row.template_list \
+        (
             TMUnlimiter_VariationItem.bl_idname,
             "variation",
             selected_variants, f"{ block_definition.selected_variant_type }_variations",
@@ -599,7 +601,8 @@ class TMUnlimiter_BlockDefinitionsPanel( bpy.types.Panel ) :
         block_unit = block_definition.get_selected_block_unit()
 
         row = box.row()
-        row.template_list(
+        row.template_list \
+        (
             TMUnlimiter_BlockUnitItem.bl_idname,
             "block_unit",
             block_definition, f"{ block_definition.selected_block_unit_type }_block_units",

@@ -208,8 +208,13 @@ class GbxArchive( GbxContainer ) :
     def header_chunk( self, header_chunk: HeaderChunk ) :
         self.__header_chunks.append( header_chunk )
 
-    def external_ref( self, external_ref: ExternalRef ) :
-        self.__external_refs.append( ( external_ref, external_ref.find_or_add_folder( self.__root_folder ), self.add_instance() ) )
+    def external_ref( self, external_ref_to_add: ExternalRef ) :
+        external_refs = list( filter( lambda external_ref: external_ref[ 0 ].compare( external_ref_to_add ), self.__external_refs ) )
+
+        if len( external_refs ) :
+            self.nat32( external_refs[ -1 ][ 2 ] )
+        else :
+            self.__external_refs.append( ( external_ref_to_add, external_ref_to_add.find_or_add_folder( self.__root_folder ), self.add_instance() ) )
 
     def mw_ref( self, function, *function_args, **function_kwargs ) :
         valid_ref = \

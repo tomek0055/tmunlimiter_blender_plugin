@@ -378,6 +378,8 @@ class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
                 if self.is_trigger_allowed() :
                     archive_variation_from_gbx_context( variation.trigger )
 
+                gbx.nat8( variation.pre_light_gen_tile_count )
+
         for variant_id, __variant_title__, __variant_description__ in available_variants :
             variants = self.path_resolve( f"variants_{ self.block_type }_{ variant_id }" )
 
@@ -420,7 +422,7 @@ class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
         # Finalize archivization
         chunk_buffer = gbx.attach_buffer( root_buffer ).getvalue()
 
-        gbx.nat32( 0x3f002001 )
+        gbx.nat32( 0x3f002002 )
         gbx.nat32( 0x534b4950 )
         gbx.nat32( len( chunk_buffer ) )
         gbx.data( chunk_buffer )

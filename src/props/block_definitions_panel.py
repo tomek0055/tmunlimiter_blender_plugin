@@ -578,6 +578,11 @@ class TMUnlimiter_BlockDefinitionsPanel( bpy.types.Panel ) :
                 if box.alert :
                     box.label( text = validation_message, icon = "ERROR" )
 
+            if box.alert :
+                box.alert = False
+
+            box.prop( selected_variation, "pre_light_gen_tile_count" )
+
         layout.prop( block_definition, "ground_spawn_location_object" )
         layout.prop( block_definition, "air_spawn_location_object" )
 

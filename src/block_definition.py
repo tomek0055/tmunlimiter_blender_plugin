@@ -184,10 +184,18 @@ class TMUnlimiter_BlockDefinition( bpy.types.PropertyGroup ) :
             if not validation_result[ 0 ] :
                 return validation_result
 
+            block_unit_offset = block_unit.calculate_offset()
+
+            if self.block_type == "road" :
+                if block_unit_offset[ 0 ] > 0 :
+                    return ( False, f"Block with road type has block unit #{ 1 + block_unit_index }, which has a coordinate in the X axis greater than zero" )
+
+                if block_unit_offset[ 2 ] > 0 :
+                    return ( False, f"Block with road type has block unit #{ 1 + block_unit_index }, which has a coordinate in the Z axis greater than zero" )
+
             if block_unit_index < 1 :
                 continue
 
-            block_unit_offset = block_unit.calculate_offset()
             back_block_unit_index = block_unit_index
 
             while back_block_unit_index :
